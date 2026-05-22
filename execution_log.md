@@ -72,7 +72,7 @@ Inspect upstream data pipeline definitions and lock a verifiable data contract f
   - `data_prepare.py`: 70/20/10 random split
   - `data_processing.py` and `data_ashare.py` datamodules: 80/10/10 random split
 - PoW policy for this repo remains chronological split for the main experiment.
-- Local data availability check (2026-05-23): no runnable local `.csv/.npz/.pt/.npy` files were found under `~/LOBench` or `~/lob-representation-diagnostic`.
+- Local data availability update (2026-05-23): external processed A-share files are available under `~/datasets/LOBench-A-share-processed` (`*-level10_processed.csv`), and remain outside PoW git tracking.
 
 ### Unresolved Uncertainties
 

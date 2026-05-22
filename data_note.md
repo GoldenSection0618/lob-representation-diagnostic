@@ -40,8 +40,10 @@ This file records LOBench-style data shape, feature layout, label definition, sp
 - Canonical PoW reconstruction input contract:
   - use normalized LOB window `X` in flattened shape `[T, 40]` as the primary format.
   - `[2, T, 20]` is treated as a model-specific derived view (channel split), not canonical storage format.
-- Local small-data availability status (checked on 2026-05-23):
-  - no runnable local `.csv/.npz/.pt/.npy` data files were found under `~/LOBench` or this PoW repo.
+- Local data availability status (checked on 2026-05-23):
+  - external processed dataset is available at `~/datasets/LOBench-A-share-processed`.
+  - verified local files include multiple `*-level10_processed.csv` files (for example `sz000001`, `sz000002`, `sz002415`, `sz000858`, `sz300147`, `sz300750`).
+  - storage policy remains unchanged: data stays external and is not committed to this PoW repository.
 
 ## LOB Object Definition
 
