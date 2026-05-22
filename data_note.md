@@ -174,10 +174,43 @@ Step 2 contract for initial PoW subset:
 - metadata file:
   - `data/processed/minimal_subset/metadata.json`
 
+## Step 3 Actual Run Facts (2026-05-23)
+
+- actual symbol: `sz000001`
+- actual input file path: `~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv`
+- actual feature naming convention:
+  - source CSV naming: `BidPrice* / AskPrice* / BidVolume* / AskVolume*`
+  - pipeline mapping: source names were explicitly mapped to canonical `bestBidPrice* / bestAskPrice* / bestBidVolume* / bestAskVolume*`
+- actual window_len: `100`
+- actual label horizon: `trend5`
+- actual threshold: `0.0001`
+- actual split ratio request: `70/15/15`
+- actual output directory: `data/processed/minimal_subset/`
+
+Step 3 subset outputs (row_limit=50000, max_samples=8000):
+
+- usable rows after label trimming: `49990`
+- final sample count after boundary purge: `7802`
+- X shape: `(7802, 100, 40)`
+- y shape: `(7802,)`
+- split sizes: `train=5600`, `val=1200`, `test=1002`
+- split label_row ranges:
+  - train: `99..5698`
+  - val: `5798..6997`
+  - test: `7097..8098`
+
+Split integrity checks summary:
+
+- `feature_contract_check`: passed
+- `label_contract_check`: passed
+- `window_alignment_check`: passed
+- `chronological_split_check`: passed
+- `output_safety_check`: passed
+- boundary overlap handling:
+  - direct train/val and val/test row-range overlap was avoided via boundary purge
+  - split is still chronological and based on increasing sample label-row order
+
 ## Known Uncertainties
 
-- Whether processed LOBench data is available locally in a directly consumable format.
-- Whether labels are already precomputed in local upstream artifacts.
-- Exact compatibility between `bestBidPrice*` and `BidPrice*` naming pipelines for the same dataset source.
-- Whether reconstruction and prediction tasks in upstream always share the same normalization settings.
-- Whether PoW subset should use step=1 or step=4 sampling for the first controlled run.
+- Whether Step 3 should standardize on `row_limit` + `max_samples` defaults or infer a fixed subset size solely from time range.
+- Whether to keep boundary purge mandatory for all future chronological splits or expose it as configurable with explicit leakage-risk reporting.

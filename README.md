@@ -73,4 +73,4 @@ This repository is an independent Proof-of-Work (PoW) repo for building a small-
 
 ## Current Status
 
-Step 2 data pipeline inspection completed. Step 3 chronological subset construction pending.
+Step 3 chronological subset construction completed. Step 4 reconstruction baselines pending.

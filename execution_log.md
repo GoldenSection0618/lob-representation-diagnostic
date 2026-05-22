@@ -84,3 +84,66 @@ Inspect upstream data pipeline definitions and lock a verifiable data contract f
 ### Next Step
 
 Step 3: implement minimal data inspection / subset construction script for chronological slicing and metadata export in the PoW repo.
+
+## Step 3: Build a Small Chronological Subset
+
+### Objective
+
+Build a minimal LOBench-style subset builder that reads one external processed CSV, applies canonical 40-feature contract and LOBench-style labels, constructs `window=100` samples, and performs strict chronological `70/15/15` split checks.
+
+### Files Modified
+
+- `src/data/load_lobench.py`
+- `src/data/labeling.py`
+- `src/data/make_subset.py`
+- `src/data/checks.py` (new)
+- `scripts/01_prepare_data.py`
+- `data_note.md`
+- `README.md`
+- `execution_log.md`
+
+### Commands Executed
+
+- Dry run:
+  - `mamba run -n lob python scripts/01_prepare_data.py --input-csv ~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv --symbol sz000001 --output-dir data/processed/minimal_subset --window-len 100 --label-horizon 5 --threshold 0.0001 --split-ratio 70/15/15 --row-limit 50000 --max-samples 8000 --dry-run`
+- Output run:
+  - `mamba run -n lob python scripts/01_prepare_data.py --input-csv ~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv --symbol sz000001 --output-dir data/processed/minimal_subset --window-len 100 --label-horizon 5 --threshold 0.0001 --split-ratio 70/15/15 --row-limit 50000 --max-samples 8000`
+
+### Input File
+
+- `~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv`
+
+### Output Path
+
+- `data/processed/minimal_subset/`
+
+### Generated Metadata
+
+- `data/processed/minimal_subset/metadata.json`
+
+### Check Results
+
+- `feature_contract_check`: passed
+- `label_contract_check`: passed
+- `window_alignment_check`: passed
+- `chronological_split_check`: passed
+- `output_safety_check`: passed
+
+Key run facts:
+
+- total raw rows used: `50000`
+- usable rows after label trimming: `49990`
+- final samples: `7802`
+- shape: `X=(7802, 100, 40)`, `y=(7802,)`
+- split sizes: `train=5600`, `val=1200`, `test=1002`
+- chronological ordering verified:
+  - `train max label_row = 5698 < val min label_row = 5798`
+  - `val max label_row = 6997 < test min label_row = 7097`
+
+### Step Completion
+
+Step 3 completed.
+
+### Next Step
+
+Step 4: implement reconstruction baselines (without changing Step 3 data contract).
