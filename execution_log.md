@@ -52,6 +52,11 @@ Inspect upstream data pipeline definitions and lock a verifiable data contract f
 ### Findings
 
 - Upstream reference repository is available at `~/LOBench` (commit `c8fe9e7`).
+- A-share / LOB loading entry points were identified:
+  - `data/data_ashare.py` for A-share dataset classes
+  - `data/data_processing.py` for simulation/processed dataset class
+  - `data/data_prepare.py` for dataloader creation and random split from `.pt`
+- Input formats used by inspected upstream pipeline are `CSV`, `NPZ`, and `PT`; HuggingFace is linked in README but not used as direct loader in inspected code.
 - `data_processing.py` defines a 10-level, 40-feature flattened LOB layout:
   - prices: `bestBidPrice10..1 + bestAskPrice1..10`
   - volumes: `bestBidVolume10..1 + bestAskVolume1..10`
@@ -60,10 +65,14 @@ Inspect upstream data pipeline definitions and lock a verifiable data contract f
   - `spread = bestAskPrice1 - bestBidPrice1`
 - Trend labels in `data_processing.py` are 3-class with thresholded future rolling-mean gap and horizons `{1,3,5,7,10}`.
 - `data_ashare.py` contains a related but different trend rule (`{-1,0,1}` and relative `theta` threshold), so label conventions are not fully unified across upstream files.
+- Sample shape conventions were confirmed:
+  - canonical flattened sequence: `[T, 40]` (PoW primary contract)
+  - model-specific derived channel view in upstream VAE path: `[2, T, 20]`
 - Upstream split behavior is random-split oriented:
   - `data_prepare.py`: 70/20/10 random split
   - `data_processing.py` and `data_ashare.py` datamodules: 80/10/10 random split
 - PoW policy for this repo remains chronological split for the main experiment.
+- Local data availability check (2026-05-23): no runnable local `.csv/.npz/.pt/.npy` files were found under `~/LOBench` or `~/lob-representation-diagnostic`.
 
 ### Unresolved Uncertainties
 

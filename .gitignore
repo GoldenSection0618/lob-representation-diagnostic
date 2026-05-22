@@ -1,9 +1,15 @@
+data/
+dataset/
+datasets/
+*.csv
 data/raw/
 data/processed/
 data/external/
 third_party/
 *.npy
 *.npz
+*.parquet
+*.arrow
 *.pkl
 *.h5
 *.pt
@@ -15,4 +21,5 @@ __pycache__/
 .ipynb_checkpoints/
 .env
 .venv/
+.vscode/
 .DS_Store

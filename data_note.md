@@ -20,6 +20,29 @@ This file records LOBench-style data shape, feature layout, label definition, sp
 - Raw data availability: not committed in this PoW repo; expected to exist outside git.
 - Data license / redistribution constraint: follow upstream license and do not redistribute proprietary/private LOB data in this repo.
 
+## Step 2 Decision Summary
+
+- `data/data_ashare.py` is the main A-share LOB data pipeline file in LOBench.
+  It covers:
+  1. raw CSV ingestion via `AShare.__init__`;
+  2. trading-session filtering and 3-second resampling via `AShare.resample_data`;
+  3. price/volume normalization via `AShare.normalize_data`;
+  4. sliding-window construction via `AShare.unbalance_data`;
+  5. trend-label construction and balanced sampling via `AShare.balance_data`;
+  6. NPZ-to-PyTorch dataset/datamodule loading via `AShareData`, `AShareVaeData`, `AShareDataModule`, and `AShareVaeDataModule`.
+- `data/data_processing.py` is the complementary processed/simulation pipeline entry (`SimDataset`), including normalized feature extraction, `get_labels`, and sequence sample generation.
+- `data/data_prepare.py` is a dataloader helper that splits existing tensor data (`torch.load` + random split), not the raw A-share preprocessing entry.
+- Input file formats observed in upstream code:
+  - `CSV` via `pd.read_csv`
+  - `NPZ` via `np.load`
+  - `PT` via `torch.load` / `torch.save`
+  - HuggingFace appears in README as distribution link, not direct runtime loader in inspected pipeline.
+- Canonical PoW reconstruction input contract:
+  - use normalized LOB window `X` in flattened shape `[T, 40]` as the primary format.
+  - `[2, T, 20]` is treated as a model-specific derived view (channel split), not canonical storage format.
+- Local small-data availability status (checked on 2026-05-23):
+  - no runnable local `.csv/.npz/.pt/.npy` data files were found under `~/LOBench` or this PoW repo.
+
 ## LOB Object Definition
 
 A LOB window will be represented as:
@@ -106,6 +129,7 @@ Expected shapes:
 
 - reconstruction input baseline: `X` shaped `(N, 100, 40)`
 - structured interpretation: `(N, 100, 10, 4)`
+- model-specific channelized variant seen in upstream VAE path: `(N, 2, 100, 20)` derived from `(N, 100, 40)`
 - label table row fields (from `get_labels`):
   - `midPrice, spread, trend1, trend3, trend5, trend7, trend10`
 
