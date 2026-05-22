@@ -1,6 +1,6 @@
-data/
-dataset/
-datasets/
+/data/
+/dataset/
+/datasets/
 *.csv
 data/raw/
 data/processed/
