@@ -423,7 +423,12 @@ def main() -> int:
         "per_sample_prediction_output": {
             "file": "per_sample_predictions.csv",
             "splits": ["val", "test"],
-            "join_keys": ["sample_id", "split", "model"],
+            "join_keys_for_step7": ["sample_id", "split"],
+            "prediction_model_column": "model",
+            "prediction_model_column_note": (
+                "In Step 5 outputs, model means prediction model. "
+                "Rename to prediction_model before joining with Step 6."
+            ),
             "direction_correct_non_neutral_semantics": (
                 "1.0/0.0 for true non-neutral samples; null for neutral samples"
             ),
@@ -532,7 +537,10 @@ def main() -> int:
     lines.append("- Step 5 does not use randomized split protocols.")
     lines.append("- Step 5 does not use plain non-purged chronological split.")
     lines.append("- Per-sample prediction outputs are saved for Step 7 alignment in `per_sample_predictions.csv`.")
-    lines.append("- Per-sample prediction outputs cover val/test only and join on `sample_id`, `split`, and `model`.")
+    lines.append(
+        "- Per-sample prediction outputs cover val/test only. For Step 7, join predictions with "
+        "reconstruction diagnostics on `sample_id` and `split`; treat Step 5 `model` as `prediction_model`."
+    )
     lines.append(
         "- `direction_correct_non_neutral` is encoded as 1.0/0.0 for true non-neutral samples "
         "and null for neutral samples."

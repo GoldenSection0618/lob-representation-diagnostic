@@ -65,6 +65,7 @@ The next step is Step 7 alignment analysis under the same split. I want the comp
 - Do spread widening, higher volatility, or weak-trend periods break the representation first?
 - Does any representation justify its latency or compression cost?
 - Step 7 now has both interfaces needed for sample-level alignment: `per_sample_reconstruction_errors.csv` (Step 6) and `per_sample_predictions.csv` (Step 5).
+- Step 7 should rename Step 5 `model` to `prediction_model` and Step 6 `model_variant` to `reconstruction_variant`; the sample-level join key is `sample_id + split`.
 
 ## Metrics
 

@@ -386,7 +386,8 @@ This avoids accidental denominator leakage if Step 7 aggregates directional corr
 I also made the Step 5 per-sample prediction interface self-describing in `run_config.json`:
 
 - `per_sample_predictions.csv` is generated for val/test only.
-- Step 7 joins on `sample_id`, `split`, and `model`.
+- Step 7 joins predictions to reconstruction diagnostics on `sample_id` and `split`.
+- Step 5 `model` means prediction model and should be renamed to `prediction_model` before Step 7 alignment.
 - `direction_correct_non_neutral` uses numeric 1.0/0.0 for true non-neutral samples and null for neutral samples.
 
 ## Step 6 Metric-Space Clarification
