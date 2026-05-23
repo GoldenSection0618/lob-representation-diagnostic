@@ -76,8 +76,8 @@ This repo does not:
 
 - `configs/`: optional experiment configs added only when used.
 - `src/data/`: external data loading, field mapping, labels, subset construction.
-- `src/models/`: implemented prediction baselines and future reconstruction baselines.
-- `src/analysis/`: implemented metrics and future diagnostics.
+- `src/models/`: prediction and reconstruction baseline models.
+- `src/analysis/`: prediction/reconstruction metrics and diagnostic utilities.
 - `src/utils/`: shared utilities only when needed.
 - `scripts/`: runnable stage entry points.
 - `docs/`: protocol and methodology notes.
