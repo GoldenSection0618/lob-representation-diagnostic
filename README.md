@@ -46,6 +46,7 @@ Step 6 reconstruction-only test snapshot:
 - Strong compression-constrained point (`latent_dim<=40`): `pca@32` (`normalized_mse=0.2924`)
 - Both best `pca` and best `mlp_ae` variants beat `last_snapshot_repeat` on test normalized-MSE
 - Error concentration for best model is much higher on volume-related dimensions than price dimensions
+- In Step 6, `original_mae` / `original_rmse` mean errors in Step 3 input feature space after inverse-transforming the Step 6 train-only scaler; they are not raw exchange order-flow scale.
 
 Artifacts from Step 6 live under:
 

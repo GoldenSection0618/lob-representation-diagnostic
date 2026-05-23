@@ -733,6 +733,10 @@ def main() -> int:
             "valid_condition": "bid>=0 and ask>=0 and bid+ask>eps_threshold for true and reconstructed volumes",
             "invalid_policy": "set imbalance_mae to null and prefer volume_sum/diff diagnostics",
         },
+        "metric_space_note": {
+            "normalized_space": "after train-only Step 6 StandardScaler",
+            "original_space": "Step 3 input feature space before Step 6 StandardScaler, not raw exchange order-flow scale",
+        },
         "step3_metadata_summary": subset["metadata"].get("summary", {}),
         "timestamp": datetime.utcnow().isoformat() + "Z",
     }
@@ -885,6 +889,10 @@ def main() -> int:
     lines.append("- Step 7 will use per_sample_reconstruction_errors.csv for alignment analysis.")
     lines.append("- Imbalance metrics are reported only when non-negative volume and denominator-validity checks pass.")
     lines.append("- When imbalance validity is weak, volume-sum and volume-difference diagnostics are preferred.")
+    lines.append(
+        "- `original_mae`/`original_rmse` are measured in Step 3 input feature space after inverse-transforming "
+        "the Step 6 scaler; they are not raw exchange order-flow scale."
+    )
 
     (output_dir / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 

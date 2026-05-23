@@ -35,6 +35,10 @@
     "valid_condition": "bid>=0 and ask>=0 and bid+ask>eps_threshold for true and reconstructed volumes",
     "invalid_policy": "set imbalance_mae to null and prefer volume_sum/diff diagnostics"
   },
+  "metric_space_note": {
+    "normalized_space": "after train-only Step 6 StandardScaler",
+    "original_space": "Step 3 input feature space before Step 6 StandardScaler, not raw exchange order-flow scale"
+  },
   "step3_metadata_summary": {
     "raw_rows": 50000,
     "usable_rows_after_label_trim": 49990,
@@ -82,5 +86,5 @@
       }
     }
   },
-  "timestamp": "2026-05-23T10:50:43.676362Z"
+  "timestamp": "2026-05-23T11:07:41.053782Z"
 }

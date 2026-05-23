@@ -32,3 +32,4 @@
 - Step 7 will use per_sample_reconstruction_errors.csv for alignment analysis.
 - Imbalance metrics are reported only when non-negative volume and denominator-validity checks pass.
 - When imbalance validity is weak, volume-sum and volume-difference diagnostics are preferred.
+- `original_mae`/`original_rmse` are measured in Step 3 input feature space after inverse-transforming the Step 6 scaler; they are not raw exchange order-flow scale.

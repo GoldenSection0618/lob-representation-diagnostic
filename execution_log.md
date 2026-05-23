@@ -372,3 +372,23 @@ Protocol scope unchanged:
 - No Step 4 split/protocol changes.
 - No random split / no-purge split.
 - No prediction-head training.
+
+## Step 5 Semantics Patch: Non-Neutral Direction Field
+
+I fixed per-sample directional semantics in `results/step5_prediction_baselines/per_sample_predictions.csv`.
+
+- `direction_correct_non_neutral` is now defined only when `y_true in {0,2}`.
+- Neutral samples now store this field as null instead of false.
+- `opposite_direction_error` remains boolean, with neutral rows as false.
+
+This avoids accidental denominator leakage if Step 7 aggregates directional correctness directly from the per-sample table.
+
+## Step 6 Metric-Space Clarification
+
+I added explicit metric-space notes to avoid misreading `original_mae` / `original_rmse` as raw exchange-scale errors.
+
+- `run_config.json` now includes `metric_space_note`:
+  - normalized space: after Step 6 train-only scaler
+  - original space: Step 3 input feature space before Step 6 scaler (not raw order-flow scale)
+
+I also synchronized this note in Step 6 summary and technical memo text.

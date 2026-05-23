@@ -54,6 +54,7 @@ Observed Step 6 pattern:
 - For the best model, volume-side reconstruction error is materially larger than price-side reconstruction error.
 - Step 6 artifacts use `model_variant` as the canonical variant key, while keeping `model` (family) and `latent_dim` (numeric compression dimension) as separate fields.
 - Imbalance MAE is now validity-gated: it is reported only when reconstructed/reference volumes satisfy non-negative and denominator checks; otherwise Step 7 should prefer volume-sum and volume-difference diagnostics.
+- `original_mae` / `original_rmse` are measured in Step 3 input feature space after inverse-transforming the Step 6 scaler, not in raw exchange order-flow scale.
 
 ## Next Comparison
 
