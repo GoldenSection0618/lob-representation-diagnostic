@@ -20,6 +20,7 @@ Boundary-purged chronological split.
 - feature_dim: 40
 - label: trend5
 - split_ratio: 70/15/15
+- sample_stride: 4
 - boundary purge: enabled and mandatory
 
 ## Excluded From Step 4

@@ -8,7 +8,7 @@ I am not optimizing for a leaderboard score or a trading PnL claim. The value of
 
 ## Current Position
 
-The main evaluation path is locked to a boundary-purged chronological split. Train comes first, validation follows, test comes last, and overlapping sliding-window history is purged at train/validation and validation/test boundaries. In code, that policy is enforced through `chronological_split()` and `_enforce_non_overlap_boundary()`.
+The main evaluation path is locked to LOBench-style `sample_stride=4` window sampling plus a boundary-purged chronological split. Train comes first, validation follows, test comes last, and overlapping sliding-window history is purged at train/validation and validation/test boundaries. In code, that policy is enforced through `build_sliding_windows()`, `chronological_split()`, and `_enforce_non_overlap_boundary()`.
 
 Random split is not part of the main experiment. A no-purge chronological split is also not part of Step 4/5/6; if I add either later, it will be labeled as an auxiliary diagnostic rather than the primary result.
 

@@ -24,11 +24,15 @@ def build_sliding_windows(
     labels: pd.DataFrame,
     window_len: int = 100,
     label_col: str = "trend5",
+    sample_stride: int = 4,
     max_samples: Optional[int] = None,
 ) -> Tuple[np.ndarray, np.ndarray, pd.DataFrame]:
     """Build chronological sliding windows without shuffle or balancing."""
     if label_col not in labels.columns:
         raise ValueError(f"label_col '{label_col}' not found in labels.")
+    sample_stride = int(sample_stride)
+    if sample_stride <= 0:
+        raise ValueError("sample_stride must be a positive integer.")
 
     feature_values = features.to_numpy(dtype=np.float32)
     label_values = labels[label_col].to_numpy(dtype=np.int64)
@@ -43,7 +47,7 @@ def build_sliding_windows(
     rows = []
 
     sample_id = 0
-    for label_row in range(window_len - 1, len(feature_values)):
+    for label_row in range(window_len - 1, len(feature_values), sample_stride):
         row_start = label_row - window_len + 1
         row_end = label_row
         window = feature_values[row_start : row_end + 1]
@@ -95,6 +99,9 @@ def chronological_split(
     y: np.ndarray,
     sample_table: pd.DataFrame,
     split_ratio: Tuple[float, float, float] = (0.7, 0.15, 0.15),
+    window_len: int | None = None,
+    label_col: str | None = None,
+    sample_stride: int | None = None,
 ) -> SubsetData:
     """Split samples chronologically by label order with boundary overlap purge."""
     if not np.isclose(sum(split_ratio), 1.0):
@@ -159,6 +166,9 @@ def chronological_split(
 
     metadata = {
         "split_ratio_requested": list(split_ratio),
+        "sample_stride": None if sample_stride is None else int(sample_stride),
+        "window_len": None if window_len is None else int(window_len),
+        "label_col": label_col,
         "target_counts": {
             "train": n_train_target,
             "val": n_val_target,
@@ -172,6 +182,16 @@ def chronological_split(
         "dropped_boundary_sample_count": len(dropped_boundary_sample_ids),
         "dropped_boundary_sample_ids_head": dropped_boundary_sample_ids[:20],
         "boundary_purge_applied": len(dropped_boundary_sample_ids) > 0,
+        "split_ranges": {
+            split: {
+                "sample_count": int((kept["split"] == split).sum()),
+                "label_row_min": int(kept.loc[kept["split"] == split, "label_row"].min()),
+                "label_row_max": int(kept.loc[kept["split"] == split, "label_row"].max()),
+                "row_start_min": int(kept.loc[kept["split"] == split, "row_start"].min()),
+                "row_end_max": int(kept.loc[kept["split"] == split, "row_end"].max()),
+            }
+            for split in ["train", "val", "test"]
+        },
     }
 
     return SubsetData(X=X_kept, y=y_kept, sample_table=kept, metadata=metadata)

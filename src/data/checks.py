@@ -69,33 +69,53 @@ def window_alignment_check(
     sample_table: pd.DataFrame,
     window_len: int = 100,
     feature_dim: int = 40,
+    sample_stride: int = 4,
 ) -> Dict[str, object]:
     checks = {}
+    sample_stride = int(sample_stride)
     checks["shape_matches"] = tuple(X.shape[1:]) == (window_len, feature_dim)
     checks["len_matches"] = len(X) == len(y) == len(sample_table)
 
     sample_ids = sample_table["sample_id"].to_numpy()
     checks["sample_id_strictly_increasing"] = bool(np.all(np.diff(sample_ids) > 0)) if len(sample_ids) > 1 else True
+    checks["sample_id_contiguous_after_keep"] = (
+        bool(np.array_equal(sample_ids, np.arange(len(sample_ids)))) if len(sample_ids) > 0 else True
+    )
 
     row_start = sample_table["row_start"].to_numpy()
     row_end = sample_table["row_end"].to_numpy()
     label_row = sample_table["label_row"].to_numpy()
 
-    checks["index_relation"] = bool(np.all((row_start < row_end) & (row_end <= label_row)))
-    checks["label_not_earlier_than_window_end"] = bool(np.all(label_row >= row_end))
+    checks["index_relation"] = bool(np.all((row_start == label_row - window_len + 1) & (row_end == label_row)))
+    checks["label_not_earlier_than_window_end"] = bool(np.all(label_row == row_end))
 
     checks["row_start_monotonic"] = bool(np.all(np.diff(row_start) > 0)) if len(row_start) > 1 else True
     checks["row_end_monotonic"] = bool(np.all(np.diff(row_end) > 0)) if len(row_end) > 1 else True
     checks["label_row_monotonic"] = bool(np.all(np.diff(label_row) > 0)) if len(label_row) > 1 else True
+    checks["sample_stride_positive"] = sample_stride > 0
+    if "original_sample_id" in sample_table.columns:
+        original_sample_id = sample_table["original_sample_id"].to_numpy()
+        expected_label_row = (window_len - 1) + original_sample_id * sample_stride
+        checks["label_row_matches_original_stride_grid"] = bool(np.all(label_row == expected_label_row))
+    else:
+        label_diffs = np.diff(label_row)
+        checks["label_row_stride_grid"] = bool(np.all(label_diffs == sample_stride)) if len(label_diffs) > 0 else True
 
     passed = all(checks.values())
-    details = {**checks, "X_shape": tuple(X.shape), "y_shape": tuple(y.shape), "num_samples": int(len(y))}
+    details = {
+        **checks,
+        "X_shape": tuple(X.shape),
+        "y_shape": tuple(y.shape),
+        "num_samples": int(len(y)),
+        "sample_stride": sample_stride,
+    }
     return _result("window_alignment_check", passed, details)
 
 
 def chronological_split_check(
     sample_table: pd.DataFrame,
     split_ratio: Tuple[float, float, float],
+    window_len: int = 100,
 ) -> Dict[str, object]:
     required_splits = ["train", "val", "test"]
     subsets = {k: sample_table[sample_table["split"] == k].copy() for k in required_splits}
@@ -138,6 +158,12 @@ def chronological_split_check(
 
     all_sorted = sample_table.sort_values("sample_id").reset_index(drop=True)
     checks["no_shuffle_signature"] = bool(np.all(np.diff(all_sorted["label_row"].to_numpy()) > 0))
+    checks["row_start_matches_label_window"] = bool(
+        np.all(all_sorted["row_start"].to_numpy() == all_sorted["label_row"].to_numpy() - window_len + 1)
+    )
+    checks["row_end_matches_label_row"] = bool(
+        np.all(all_sorted["row_end"].to_numpy() == all_sorted["label_row"].to_numpy())
+    )
 
     total = len(sample_table)
     expected = {
@@ -168,6 +194,7 @@ def chronological_split_check(
             "train_val": overlap_train_val,
             "val_test": overlap_val_test,
         },
+        "window_len": int(window_len),
     }
 
     passed = all(checks.values())

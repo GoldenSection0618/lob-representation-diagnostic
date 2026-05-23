@@ -76,12 +76,14 @@ The first downstream target is `trend5`; the other horizons are reserved for lat
 ## Split Policy
 
 The main split is boundary-purged chronological. The Step 3 subset already applies it, and Step 4 locked it as the current evaluation protocol.
+The main window sampling protocol uses `sample_stride=4`, aligned with the upstream LOBench-style A-share sampling convention. The earlier dense `sample_stride=1` run was a pilot and is no longer the active main evidence.
 
 The rule is intentionally conservative. LOB windows overlap heavily, so a plain random split can put near-neighbor windows into train and test. Even a chronological split needs boundary purge, otherwise adjacent segments can share historical rows through the sliding window.
 
 Current rules:
 
 - Train, validation, and test preserve time order.
+- Windows are sampled every 4 label rows to reduce near-duplicate overlap while preserving chronological order.
 - Sample IDs and label rows do not overlap across splits.
 - Historical rows do not overlap across train/validation or validation/test boundaries.
 - Random split is auxiliary only if it is ever added.

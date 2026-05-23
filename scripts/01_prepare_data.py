@@ -102,6 +102,7 @@ def main() -> int:
     parser.add_argument("--split-ratio", default="70/15/15")
     parser.add_argument("--row-limit", type=int, default=None)
     parser.add_argument("--max-samples", type=int, default=None)
+    parser.add_argument("--sample-stride", type=int, default=4)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -134,10 +135,19 @@ def main() -> int:
         labels=labeled.labels,
         window_len=args.window_len,
         label_col=label_col,
+        sample_stride=args.sample_stride,
         max_samples=args.max_samples,
     )
 
-    subset = chronological_split(X=X, y=y, sample_table=sample_table, split_ratio=split_ratio)
+    subset = chronological_split(
+        X=X,
+        y=y,
+        sample_table=sample_table,
+        split_ratio=split_ratio,
+        window_len=args.window_len,
+        label_col=label_col,
+        sample_stride=args.sample_stride,
+    )
 
     align_check = window_alignment_check(
         subset.X,
@@ -145,11 +155,12 @@ def main() -> int:
         subset.sample_table,
         window_len=args.window_len,
         feature_dim=40,
+        sample_stride=args.sample_stride,
     )
     if not align_check["passed"]:
         raise RuntimeError(f"window_alignment_check failed: {align_check['details']}")
 
-    chrono_check = chronological_split_check(subset.sample_table, split_ratio=split_ratio)
+    chrono_check = chronological_split_check(subset.sample_table, split_ratio=split_ratio, window_len=args.window_len)
     if not chrono_check["passed"]:
         raise RuntimeError(f"chronological_split_check failed: {chrono_check['details']}")
 
@@ -165,6 +176,7 @@ def main() -> int:
         "window_len": int(args.window_len),
         "label_horizon": int(args.label_horizon),
         "label_col": label_col,
+        "sample_stride": int(args.sample_stride),
         "threshold": float(args.threshold),
         "split_ratio": list(split_ratio),
         "row_limit": args.row_limit,
@@ -216,6 +228,7 @@ def main() -> int:
     print(f"X shape: {tuple(metadata['summary']['X_shape'])}")
     print(f"y shape: {tuple(metadata['summary']['y_shape'])}")
     print(f"label horizon: {args.label_horizon}")
+    print(f"sample stride: {args.sample_stride}")
     print(f"class distribution ({label_col}): {metadata['summary']['class_distribution_label_col']}")
     print(
         "train / val / test sizes: "
