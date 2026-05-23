@@ -41,7 +41,7 @@ This project is not chasing SOTA and it is not a trading PnL study. The goal is 
 
 ## Current State
 
-Step 3 is complete and Step 4 locks the evaluation protocol. I built a minimal chronological subset from the external processed CSV for `sz000001`.
+Step 5 prediction-only baselines are complete under the locked boundary-purged chronological protocol.
 
 Key facts:
 
@@ -55,8 +55,13 @@ Key facts:
 - Final samples: `7802`
 - Shape: `X=(7802, 100, 40)`, `y=(7802,)`
 - Checks passed: feature contract, label contract, window alignment, chronological split, and output safety.
+- Prediction-only models run: `majority`, `logistic_regression`, `mlp`
+- Best test model by macro-F1: `logistic_regression` (`macro_f1=0.3338`, `balanced_accuracy=0.3504`, `mcc=0.0250`)
+- Step 5 outputs:
+  - `results/step5_prediction_baselines/`
+  - `figures/step5_prediction_baselines/`
 
-Next step: Step 5, build a prediction-only baseline under the locked leakage-aware chronological protocol.
+Step 5 does not include reconstruction baselines. Reconstruction/representation experiments remain pending.
 
 ## Repository Layout
 

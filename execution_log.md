@@ -139,3 +139,78 @@ The main split must satisfy:
 Next step:
 
 Step 5 will build prediction-only baselines before reconstruction baselines.
+
+## Step 5: Build Prediction-Only Baselines
+
+Objective:
+
+- Build prediction floor baselines directly on the locked Step 3 subset.
+- Keep Step 3 data contract and Step 4 protocol unchanged.
+
+Files added or modified:
+
+- `src/data/prediction_dataset.py`
+- `src/analysis/prediction_metrics.py`
+- `src/models/prediction_baselines.py`
+- `scripts/02_prediction_baselines.py`
+- `results/step5_prediction_baselines/*`
+- `figures/step5_prediction_baselines/*`
+- `README.md`
+- `technical_memo.md`
+- `execution_log.md`
+
+Command used:
+
+```bash
+mamba run -n lob python scripts/02_prediction_baselines.py \
+  --subset-dir data/processed/minimal_subset \
+  --output-dir results/step5_prediction_baselines \
+  --figures-dir figures/step5_prediction_baselines \
+  --seed 42 \
+  --models majority,logistic_regression,mlp \
+  --max-epochs 100 \
+  --batch-size 256 \
+  --device auto
+```
+
+Split sizes (from `samples.csv` only, no re-split):
+
+- train: `5600`
+- val: `1200`
+- test: `1002`
+
+Models run:
+
+- majority
+- logistic_regression
+- mlp
+
+Key test metrics:
+
+- majority: `accuracy=0.4501`, `balanced_accuracy=0.3333`, `macro_f1=0.2069`, `mcc=0.0000`, `log_loss=1.2228`
+- logistic_regression: `accuracy=0.4122`, `balanced_accuracy=0.3504`, `macro_f1=0.3338`, `mcc=0.0250`, `log_loss=9.2487`
+- mlp: `accuracy=0.4531`, `balanced_accuracy=0.3535`, `macro_f1=0.2760`, `mcc=0.0589`, `log_loss=1.7594`
+
+Generated result files:
+
+- `results/step5_prediction_baselines/metrics.csv`
+- `results/step5_prediction_baselines/classification_report.json`
+- `results/step5_prediction_baselines/directional_metrics.json`
+- `results/step5_prediction_baselines/confusion_matrices.json`
+- `results/step5_prediction_baselines/prediction_distributions.json`
+- `results/step5_prediction_baselines/run_config.json`
+- `results/step5_prediction_baselines/summary.md`
+
+Generated figures:
+
+- `figures/step5_prediction_baselines/primary_metrics_by_model.png`
+- `figures/step5_prediction_baselines/class_distribution_true_vs_pred.png`
+- `figures/step5_prediction_baselines/confusion_matrix_best_model_normalized.png`
+- `figures/step5_prediction_baselines/directional_error_summary.png`
+- `figures/step5_prediction_baselines/log_loss_by_model.png`
+
+Protocol confirmation:
+
+- Step 5 did not modify the Step 3 data contract.
+- Step 5 did not modify the Step 4 boundary-purged chronological protocol.
+- Step 5 did not add alternative split protocols in code.

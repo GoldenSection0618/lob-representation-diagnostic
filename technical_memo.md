@@ -62,7 +62,7 @@ Diagnostic side:
 
 ## Current Limits
 
-Only the Step 3 data path and Step 4 protocol lock are complete right now. There are no baseline training results yet, so I should not draw model-quality conclusions.
+Step 5 prediction-only baselines are now available, but reconstruction-alignment conclusions are still out of scope.
 
 Known limits:
 
@@ -70,8 +70,24 @@ Known limits:
 - Data stays outside the repo, so reproduction requires the external dataset path locally.
 - The first label is fixed to `trend5`; other horizons are not yet part of the main experiment.
 - There is no multi-symbol, multi-date, or cross-regime robustness result yet.
-- Prediction-only baselines have not been run yet.
 - Reconstruction baselines have not been run yet.
-- Current claims are protocol and data-contract claims only, not model-quality claims.
+- Current model-quality conclusions are limited to prediction-only baselines under the locked protocol.
+- Reconstruction-prediction alignment is not claimed yet.
 
-Next step: Step 5, build prediction-only baselines under the locked leakage-aware chronological protocol.
+## Step 5 Snapshot (Prediction-Only)
+
+Test-split summary on the locked Step 3 subset:
+
+| Model | Accuracy | Balanced Accuracy | Macro-F1 | MCC | Log Loss |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| majority | 0.4501 | 0.3333 | 0.2069 | 0.0000 | 1.2228 |
+| logistic_regression | 0.4122 | 0.3504 | 0.3338 | 0.0250 | 9.2487 |
+| mlp | 0.4531 | 0.3535 | 0.2760 | 0.0589 | 1.7594 |
+
+Interpretation bounds:
+
+- These are prediction-only baseline results.
+- They do not validate reconstruction quality or reconstruction-to-prediction transfer.
+- Any reconstruction alignment claim must wait for later steps.
+
+Next step: implement reconstruction baselines and then test reconstruction-prediction alignment under the same locked protocol.
