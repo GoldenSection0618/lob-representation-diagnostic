@@ -65,10 +65,10 @@
     },
     "logistic_regression": {
       "val": {
-        "mean_confidence": 0.9369106729237278
+        "mean_confidence": 0.936910672923728
       },
       "test": {
-        "mean_confidence": 0.9636710858226126
+        "mean_confidence": 0.9636710858226125
       }
     },
     "mlp": {
