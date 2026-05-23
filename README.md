@@ -61,12 +61,11 @@ This repo does not:
 
 ## Layout
 
-- `configs/`: experiment configs.
+- `configs/`: optional experiment configs added only when used.
 - `src/data/`: external data loading, field mapping, labels, subset construction.
-- `src/models/`: representation models and prediction baselines.
-- `src/losses/`: reconstruction objectives and weighted variants.
-- `src/analysis/`: metrics, diagnostics, and failure analysis.
-- `src/utils/`: seeds, profiling, and shared utilities.
+- `src/models/`: implemented prediction baselines and future reconstruction baselines.
+- `src/analysis/`: implemented metrics and future diagnostics.
+- `src/utils/`: shared utilities only when needed.
 - `scripts/`: runnable stage entry points.
 - `docs/`: protocol and methodology notes.
 - `results/`: experiment outputs.
