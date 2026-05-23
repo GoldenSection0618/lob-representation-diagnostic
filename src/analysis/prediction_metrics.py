@@ -85,6 +85,12 @@ def compute_prediction_metrics(
     y_true = np.asarray(y_true).astype(int)
     y_pred = np.asarray(y_pred).astype(int)
     y_proba = np.asarray(y_proba, dtype=float)
+    class_order_set = set(class_order)
+
+    if not set(np.unique(y_true)).issubset(class_order_set):
+        raise ValueError("y_true contains labels outside class_order.")
+    if not set(np.unique(y_pred)).issubset(class_order_set):
+        raise ValueError("y_pred contains labels outside class_order.")
 
     if y_proba.ndim != 2 or y_proba.shape[1] != len(class_order):
         raise ValueError(f"y_proba must have shape (N, {len(class_order)}), got {y_proba.shape}")

@@ -89,7 +89,24 @@ class LogisticRegressionBaseline:
         return self.pipeline.predict(flatten_windows(X)).astype(np.int64)
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
-        return self.pipeline.predict_proba(flatten_windows(X)).astype(np.float64)
+        raw = self.pipeline.predict_proba(flatten_windows(X)).astype(np.float64)
+        clf = self.pipeline.named_steps["clf"]
+        aligned = np.zeros((raw.shape[0], len(CLASS_ORDER)), dtype=np.float64)
+
+        class_to_dst = {c: i for i, c in enumerate(CLASS_ORDER)}
+        for src_idx, cls in enumerate(clf.classes_):
+            cls_int = int(cls)
+            if cls_int in class_to_dst:
+                aligned[:, class_to_dst[cls_int]] = raw[:, src_idx]
+
+        row_sum = aligned.sum(axis=1, keepdims=True)
+        aligned = np.divide(
+            aligned,
+            row_sum,
+            out=np.full_like(aligned, 1.0 / len(CLASS_ORDER)),
+            where=row_sum > 0,
+        )
+        return aligned
 
 
 class _MLPNet(nn.Module):
