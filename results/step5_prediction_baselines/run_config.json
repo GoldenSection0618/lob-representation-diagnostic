@@ -1,0 +1,122 @@
+{
+  "subset_dir": "data/processed/minimal_subset",
+  "output_dir": "results/step5_prediction_baselines",
+  "figures_dir": "figures/step5_prediction_baselines",
+  "seed": 42,
+  "selected_models": [
+    "majority",
+    "logistic_regression",
+    "mlp"
+  ],
+  "model_hyperparameters": {
+    "majority": {},
+    "logistic_regression": {
+      "max_iter": 2000,
+      "class_weight": "balanced"
+    },
+    "mlp": {
+      "max_epochs": 100,
+      "batch_size": 256,
+      "patience": 10,
+      "hidden": [
+        256,
+        64
+      ],
+      "dropout": 0.2,
+      "class_weight": "train_distribution_inverse_freq"
+    }
+  },
+  "class_order": [
+    0,
+    1,
+    2
+  ],
+  "class_names": {
+    "0": "down",
+    "1": "neutral",
+    "2": "up"
+  },
+  "model_selection_policy": {
+    "primary_for_this_pow": "macro_f1",
+    "tie_breakers_for_primary": [
+      "mcc",
+      "log_loss"
+    ],
+    "lobench_reference_metric": "cross_entropy_loss/log_loss",
+    "best_by_macro_f1": "logistic_regression",
+    "best_by_log_loss": "majority",
+    "best_by_cross_entropy": "majority",
+    "note": "Macro-F1 is used for class-imbalance-aware directional diagnosis; log_loss is reported as the LOBench-compatible CE-style probability-quality metric."
+  },
+  "timestamp": "2026-05-23T15:53:23.813657Z",
+  "step3_metadata_summary": {
+    "raw_rows": 50000,
+    "usable_rows_after_label_trim": 49990,
+    "total_samples": 7952,
+    "X_shape": [
+      7952,
+      100,
+      40
+    ],
+    "y_shape": [
+      7952
+    ],
+    "sample_stride": 4,
+    "boundary_purge_applied": true,
+    "dropped_boundary_sample_count": 48,
+    "actual_counts": {
+      "train": 5600,
+      "val": 1200,
+      "test": 1152
+    },
+    "class_distribution_label_col": {
+      "0": 7680,
+      "1": 34246,
+      "2": 8064
+    },
+    "split_ranges": {
+      "train": {
+        "sample_count": 5600,
+        "sample_id_min": 0,
+        "sample_id_max": 5599,
+        "label_row_min": 99,
+        "label_row_max": 22495,
+        "row_start_min": 0,
+        "row_end_max": 22495
+      },
+      "val": {
+        "sample_count": 1200,
+        "sample_id_min": 5600,
+        "sample_id_max": 6799,
+        "label_row_min": 22595,
+        "label_row_max": 27391,
+        "row_start_min": 22496,
+        "row_end_max": 27391
+      },
+      "test": {
+        "sample_count": 1152,
+        "sample_id_min": 6800,
+        "sample_id_max": 7951,
+        "label_row_min": 27491,
+        "label_row_max": 32095,
+        "row_start_min": 27392,
+        "row_end_max": 32095
+      }
+    }
+  },
+  "step4_protocol_note": "boundary-purged chronological split",
+  "per_sample_prediction_output": {
+    "file": "per_sample_predictions.csv",
+    "splits": [
+      "val",
+      "test"
+    ],
+    "join_keys_for_step7": [
+      "sample_id",
+      "split"
+    ],
+    "prediction_model_column": "model",
+    "prediction_model_column_note": "In Step 5 outputs, model means prediction model. Rename to prediction_model before joining with Step 6.",
+    "direction_correct_non_neutral_semantics": "1.0/0.0 for true non-neutral samples; null for neutral samples"
+  }
+}

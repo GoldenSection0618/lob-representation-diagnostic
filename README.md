@@ -30,7 +30,13 @@ Current data run:
 - Boundary samples dropped: `48`
 - Data checks passed: feature contract, label contract, window alignment, chronological split, output safety
 
-Step 5 prediction-only baselines are being rerun under the stride-4 main protocol. The older stride-1 prediction artifacts were removed and are no longer active evidence.
+Step 5 prediction-only test results:
+
+- `majority`: `macro_f1=0.2612`, `balanced_accuracy=0.3333`, `mcc=0.0000`, `log_loss=0.8980`
+- `logistic_regression`: `macro_f1=0.3972`, `balanced_accuracy=0.4098`, `mcc=0.1007`, `log_loss=4.1624`
+- `mlp`: `macro_f1=0.3816`, `balanced_accuracy=0.4513`, `mcc=0.1624`, `log_loss=1.2767`
+
+`logistic_regression` is the best test model by macro-F1, while `majority` is best by log loss. I treat that as a useful warning: directional class separation and probability quality are not the same thing.
 
 Artifacts from Step 5 live under:
 

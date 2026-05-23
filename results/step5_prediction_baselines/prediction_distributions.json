@@ -1,0 +1,83 @@
+{
+  "true_distribution": {
+    "train": {
+      "0": 965,
+      "1": 3674,
+      "2": 961
+    },
+    "val": {
+      "0": 141,
+      "1": 895,
+      "2": 164
+    },
+    "test": {
+      "0": 205,
+      "1": 742,
+      "2": 205
+    }
+  },
+  "predicted_distribution": {
+    "majority": {
+      "val": {
+        "0": 0,
+        "1": 1200,
+        "2": 0
+      },
+      "test": {
+        "0": 0,
+        "1": 1152,
+        "2": 0
+      }
+    },
+    "logistic_regression": {
+      "val": {
+        "0": 191,
+        "1": 836,
+        "2": 173
+      },
+      "test": {
+        "0": 292,
+        "1": 613,
+        "2": 247
+      }
+    },
+    "mlp": {
+      "val": {
+        "0": 155,
+        "1": 924,
+        "2": 121
+      },
+      "test": {
+        "0": 522,
+        "1": 325,
+        "2": 305
+      }
+    }
+  },
+  "probability_summary": {
+    "majority": {
+      "val": {
+        "mean_confidence": 0.6560714285714286
+      },
+      "test": {
+        "mean_confidence": 0.6560714285714285
+      }
+    },
+    "logistic_regression": {
+      "val": {
+        "mean_confidence": 0.9222160643830812
+      },
+      "test": {
+        "mean_confidence": 0.9146399045399273
+      }
+    },
+    "mlp": {
+      "val": {
+        "mean_confidence": 0.644747793674469
+      },
+      "test": {
+        "mean_confidence": 0.5924288034439087
+      }
+    }
+  }
+}

@@ -26,7 +26,16 @@ The split is stricter than plain chronological evaluation because overlapping hi
 
 ## Baseline Snapshot
 
-Step 5 prediction-only baselines are being rerun under the stride-4 main protocol. The older stride-1 metrics were a dense-window pilot and are no longer active evidence.
+Step 5 completed prediction-only baselines on the stride-4 locked subset. These results set a floor; they do not say anything yet about reconstruction quality or representation transfer.
+
+| Model | Accuracy | Balanced Accuracy | Macro-F1 | MCC | Log Loss |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| majority | 0.6441 | 0.3333 | 0.2612 | 0.0000 | 0.8980 |
+| logistic_regression | 0.4826 | 0.4098 | 0.3972 | 0.1007 | 4.1624 |
+| mlp | 0.4036 | 0.4513 | 0.3816 | 0.1624 | 1.2767 |
+
+The best macro-F1 comes from logistic regression, but the best log loss comes from the majority baseline. That is a practical signal: directional class separation and probability quality are not the same thing.
+For selection policy, macro-F1 is the primary metric for this imbalanced directional diagnostic, while log loss is retained as the LOBench-compatible cross-entropy-style probability-quality metric.
 
 ## Step 6 Reconstruction Snapshot
 

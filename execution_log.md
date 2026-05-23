@@ -498,3 +498,39 @@ Actual stride-4 subset facts:
 - boundary purge applied: `true`
 - train/val and val/test historical rows do not overlap
 - sample IDs are contiguous after final keep
+
+## Step 5 Rerun: Prediction Baselines on sample_stride=4
+
+Command:
+
+```bash
+mamba run -n lob python scripts/02_prediction_baselines.py \
+  --subset-dir data/processed/minimal_subset \
+  --output-dir results/step5_prediction_baselines \
+  --figures-dir figures/step5_prediction_baselines \
+  --seed 42 \
+  --models majority,logistic_regression,mlp \
+  --max-epochs 100 \
+  --batch-size 256 \
+  --device auto
+```
+
+Split sizes:
+
+- train: `5600`
+- val: `1200`
+- test: `1152`
+
+Test metrics:
+
+- `majority`: `accuracy=0.6441`, `balanced_accuracy=0.3333`, `macro_f1=0.2612`, `mcc=0.0000`, `log_loss=0.8980`
+- `logistic_regression`: `accuracy=0.4826`, `balanced_accuracy=0.4098`, `macro_f1=0.3972`, `mcc=0.1007`, `log_loss=4.1624`
+- `mlp`: `accuracy=0.4036`, `balanced_accuracy=0.4513`, `macro_f1=0.3816`, `mcc=0.1624`, `log_loss=1.2767`
+
+Best test model by macro-F1 tie-broken by MCC then log loss: `logistic_regression`.
+
+Validation checks:
+
+- `per_sample_predictions.csv` contains val/test rows for all three prediction models.
+- `direction_correct_non_neutral` is null for true neutral rows and non-null for true down/up rows.
+- Step 5 remains prediction-only; no reconstruction models are used.
