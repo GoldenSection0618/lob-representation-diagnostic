@@ -288,3 +288,15 @@ Variant mapping rule now used:
 - `mlp_ae` + `latent_dim=d` -> `mlp_ae@d`
 
 This change does not alter Step 3 data, Step 4 protocol, Step 6 split behavior, or any model-training logic.
+
+## Step 6 Artifact Schema Sync: Canonical Variant Key
+
+I re-ran Step 6 generation so `model_variant` is produced natively by `scripts/03_reconstruction_baselines.py` across all Step 6 long tables and `model_manifest.json`.
+
+Canonical key policy remains:
+
+- `model`: model family
+- `latent_dim`: numeric compression dimension
+- `model_variant`: unique variant identifier for Step 7 joins and grouping
+
+No change was made to Step 3 data, Step 4 split protocol, or Step 6 model set.

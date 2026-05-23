@@ -52,6 +52,7 @@ Observed Step 6 pattern:
 - PCA dominates reconstruction quality across tested latent dimensions.
 - Both best PCA and best MLP-AE improve over `last_snapshot_repeat` on normalized MSE.
 - For the best model, volume-side reconstruction error is materially larger than price-side reconstruction error.
+- Step 6 artifacts use `model_variant` as the canonical variant key, while keeping `model` (family) and `latent_dim` (numeric compression dimension) as separate fields.
 
 ## Next Comparison
 

@@ -480,6 +480,7 @@ def main() -> int:
         num_parameters: int,
         artifact_path: str | None,
     ) -> None:
+        variant = _model_variant(model_name, latent_dim)
         result = _model_eval(
             model_name=model_name,
             latent_dim=latent_dim,
@@ -503,6 +504,7 @@ def main() -> int:
 
         manifest_entry = {
             "model": model_name,
+            "model_variant": variant,
             "latent_dim": latent_dim,
             "input_dim": int(input_dim),
             "compression_ratio": compression_ratio,
@@ -649,7 +651,9 @@ def main() -> int:
 
     metrics_df.to_csv(output_dir / "metrics.csv", index=False)
 
-    rate_df = metrics_df[["model", "latent_dim", "split", "compression_ratio", "normalized_mse", "normalized_mae", "original_mae"]].copy()
+    rate_df = metrics_df[
+        ["model", "model_variant", "latent_dim", "split", "compression_ratio", "normalized_mse", "normalized_mae", "original_mae"]
+    ].copy()
     rate_df = rate_df[(rate_df["compression_ratio"].notna()) & (rate_df["compression_ratio"] > 0)]
     rate_df.to_csv(output_dir / "rate_distortion.csv", index=False)
 
