@@ -60,7 +60,7 @@ This repo does:
 - Build a small chronological subset from external LOBench-style A-share data.
 - Keep a fixed 10-level, 100-step, 40-feature input contract.
 - Establish prediction-only floors before representation experiments.
-- Compare reconstruction quality against downstream prediction once reconstruction baselines are available.
+- Compare reconstruction quality against downstream prediction once alignment analysis is available.
 - Break reconstruction error down by book level and regime.
 - Track practical costs such as latency and compression only when they clarify the trade-off.
 
