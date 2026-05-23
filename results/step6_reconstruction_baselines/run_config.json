@@ -29,6 +29,12 @@
   "class_label_usage": "y labels copied only into per-sample diagnostics",
   "step4_protocol_note": "boundary-purged chronological split",
   "step5_relation": "prediction-only baseline already complete; Step 6 does not train prediction heads",
+  "imbalance_gate": {
+    "eps_threshold": 1e-06,
+    "valid_ratio_threshold": 0.95,
+    "valid_condition": "bid>=0 and ask>=0 and bid+ask>eps_threshold for true and reconstructed volumes",
+    "invalid_policy": "set imbalance_mae to null and prefer volume_sum/diff diagnostics"
+  },
   "step3_metadata_summary": {
     "raw_rows": 50000,
     "usable_rows_after_label_trim": 49990,
@@ -76,5 +82,5 @@
       }
     }
   },
-  "timestamp": "2026-05-23T10:36:04.624466Z"
+  "timestamp": "2026-05-23T10:50:43.676362Z"
 }

@@ -9,6 +9,7 @@
 - selected: ['train_mean_window', 'last_snapshot_repeat', 'pca', 'mlp_ae']
 - pca latent dims: [8, 16, 32, 64, 128]
 - mlp_ae latent dims: [16, 32, 64]
+- imbalance gate: eps_threshold=1e-06, valid_ratio_threshold=0.95
 
 ## Best Test Reconstruction
 - best by normalized_mse: pca@128; normalized_mse=0.191170, normalized_mae=0.239629, original_mae=0.135957

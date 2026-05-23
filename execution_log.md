@@ -329,3 +329,46 @@ Protocol scope unchanged:
 - No Step 4 split/protocol change.
 - No random split or no-purge split added.
 - No prediction-head training added.
+
+## Step 5 Interface Patch: Per-Sample Prediction Outputs
+
+I added per-sample prediction exports required for Step 7 alignment.
+
+Updated script:
+
+- `scripts/02_prediction_baselines.py`
+
+New output:
+
+- `results/step5_prediction_baselines/per_sample_predictions.csv`
+
+Schema includes:
+
+- `sample_id`, `original_sample_id`, `split`, `label_row`, `y_true`
+- `model`, `y_pred`, `correct`, `confidence`
+- `proba_0`, `proba_1`, `proba_2`
+- `is_non_neutral_true`, `is_non_neutral_pred`
+- `direction_correct_non_neutral`, `opposite_direction_error`
+
+This patch does not change prediction training logic. It only exposes sample-level outputs for Step 7 joins.
+
+## Step 6 Reproducibility and Figure Sync Patch
+
+I synchronized Step 6 artifacts with the imbalance-gating and fallback-diagnostic contract.
+
+Updated script:
+
+- `scripts/03_reconstruction_baselines.py`
+
+Changes:
+
+- `run_config.json` now records imbalance-gate parameters (`eps_threshold`, `valid_ratio_threshold`, valid condition, invalid policy).
+- Added figure: `figures/step6_reconstruction_baselines/derived_lob_error_by_model.png`.
+- `summary.md` now includes the gate thresholds and keeps fallback volume diagnostics explicit.
+
+Protocol scope unchanged:
+
+- No Step 3 data changes.
+- No Step 4 split/protocol changes.
+- No random split / no-purge split.
+- No prediction-head training.

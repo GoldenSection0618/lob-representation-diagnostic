@@ -25,6 +25,8 @@ if str(REPO_ROOT) not in sys.path:
 from src.analysis.reconstruction_metrics import (
     BEST_ASK_PRICE1_IDX,
     BEST_BID_PRICE1_IDX,
+    IMBALANCE_EPS_THRESHOLD,
+    IMBALANCE_VALID_RATIO_THRESHOLD,
     WINDOW_LEN,
     class_distribution,
     compute_derived_lob_errors,
@@ -198,6 +200,44 @@ def _plot_feature_group(feature_df: pd.DataFrame, derived_df: pd.DataFrame, sele
     plt.tight_layout()
     plt.savefig(fig_path, dpi=150)
     plt.close(fig)
+
+
+def _plot_derived_lob_error_by_model(
+    derived_df: pd.DataFrame, selected: List[Tuple[str, int | None]], fig_path: Path
+) -> None:
+    selected_labels = [_safe_label(m, d) for m, d in selected]
+    metrics = [
+        "midprice_mae",
+        "spread_mae",
+        "top1_volume_sum_mae",
+        "top5_volume_sum_mae",
+        "top1_volume_diff_mae",
+        "top5_volume_diff_mae",
+    ]
+    x = np.arange(len(metrics))
+    width = 0.8 / max(len(selected_labels), 1)
+
+    plt.figure(figsize=(13, 5))
+    for i, (model, latent) in enumerate(selected):
+        part = derived_df[
+            (derived_df["split"] == "test")
+            & (derived_df["model"] == model)
+            & (derived_df["latent_dim"].isna() if latent is None else derived_df["latent_dim"] == latent)
+        ]
+        if part.empty:
+            vals = [float("nan")] * len(metrics)
+        else:
+            r = part.iloc[0]
+            vals = [float(r[m]) for m in metrics]
+        plt.bar(x - 0.4 + width / 2 + i * width, vals, width=width, label=selected_labels[i])
+
+    plt.xticks(x, metrics, rotation=20, ha="right")
+    plt.ylabel("original MAE")
+    plt.title("Derived LOB Error by Model (Test)")
+    plt.legend(fontsize=8)
+    plt.tight_layout()
+    plt.savefig(fig_path, dpi=150)
+    plt.close()
 
 
 def _plot_level_heatmap(level_df: pd.DataFrame, best_model: str, best_latent: int | None, fig_path: Path) -> None:
@@ -687,6 +727,12 @@ def main() -> int:
         "class_label_usage": "y labels copied only into per-sample diagnostics",
         "step4_protocol_note": "boundary-purged chronological split",
         "step5_relation": "prediction-only baseline already complete; Step 6 does not train prediction heads",
+        "imbalance_gate": {
+            "eps_threshold": IMBALANCE_EPS_THRESHOLD,
+            "valid_ratio_threshold": IMBALANCE_VALID_RATIO_THRESHOLD,
+            "valid_condition": "bid>=0 and ask>=0 and bid+ask>eps_threshold for true and reconstructed volumes",
+            "invalid_policy": "set imbalance_mae to null and prefer volume_sum/diff diagnostics",
+        },
         "step3_metadata_summary": subset["metadata"].get("summary", {}),
         "timestamp": datetime.utcnow().isoformat() + "Z",
     }
@@ -732,6 +778,7 @@ def main() -> int:
             seen.add(item)
 
     _plot_feature_group(feature_df, derived_df, selected_unique, figures_dir / "feature_group_error_by_model.png")
+    _plot_derived_lob_error_by_model(derived_df, selected_unique, figures_dir / "derived_lob_error_by_model.png")
     best_latent = None if pd.isna(best_row["latent_dim"]) else int(best_row["latent_dim"])
     _plot_level_heatmap(level_df, str(best_row["model"]), best_latent, figures_dir / "level_wise_error_heatmap_best_model.png")
 
@@ -754,6 +801,10 @@ def main() -> int:
     lines.append(f"- selected: {selected_models}")
     lines.append(f"- pca latent dims: {pca_dims}")
     lines.append(f"- mlp_ae latent dims: {mlp_dims}")
+    lines.append(
+        f"- imbalance gate: eps_threshold={IMBALANCE_EPS_THRESHOLD}, "
+        f"valid_ratio_threshold={IMBALANCE_VALID_RATIO_THRESHOLD}"
+    )
     lines.append("")
     lines.append("## Best Test Reconstruction")
     lines.append(
