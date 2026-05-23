@@ -1,6 +1,7 @@
 /data/
 /dataset/
 /datasets/
+artifacts/
 data/raw/
 data/processed/
 data/external/
@@ -13,6 +14,7 @@ third_party/
 *.h5
 *.pt
 *.pth
+*.joblib
 *.ckpt
 *.csv
 !results/**/*.csv
