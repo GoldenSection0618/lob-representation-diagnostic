@@ -62,6 +62,45 @@ def _mean_confidence(proba: np.ndarray) -> float:
     return float(np.max(proba, axis=1).mean()) if len(proba) else float("nan")
 
 
+def _build_per_sample_prediction_frame(
+    sample_table: pd.DataFrame,
+    model_name: str,
+    split_name: str,
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    y_proba: np.ndarray,
+) -> pd.DataFrame:
+    if len(sample_table) != len(y_true):
+        raise ValueError(
+            f"sample table length mismatch for split={split_name}: "
+            f"len(sample_table)={len(sample_table)} vs len(y_true)={len(y_true)}"
+        )
+    if y_proba.shape[1] != len(CLASS_ORDER):
+        raise ValueError(f"Expected probability width {len(CLASS_ORDER)}, got {y_proba.shape[1]}")
+
+    out = sample_table[["sample_id", "original_sample_id", "split", "label_row"]].copy()
+    out["split"] = split_name
+    out["y_true"] = y_true.astype(int)
+    out["model"] = model_name
+    out["y_pred"] = y_pred.astype(int)
+    out["correct"] = out["y_pred"].to_numpy() == out["y_true"].to_numpy()
+    out["confidence"] = np.max(y_proba, axis=1).astype(float)
+    out["proba_0"] = y_proba[:, 0].astype(float)
+    out["proba_1"] = y_proba[:, 1].astype(float)
+    out["proba_2"] = y_proba[:, 2].astype(float)
+    out["is_non_neutral_true"] = np.isin(out["y_true"].to_numpy(), [0, 2])
+    out["is_non_neutral_pred"] = np.isin(out["y_pred"].to_numpy(), [0, 2])
+
+    out["direction_correct_non_neutral"] = out["is_non_neutral_true"].to_numpy() & (
+        out["y_true"].to_numpy() == out["y_pred"].to_numpy()
+    )
+    out["opposite_direction_error"] = (
+        ((out["y_true"].to_numpy() == 0) & (out["y_pred"].to_numpy() == 2))
+        | ((out["y_true"].to_numpy() == 2) & (out["y_pred"].to_numpy() == 0))
+    )
+    return out
+
+
 def _build_model(name: str, args, device: str):
     if name == "majority":
         return MajorityBaseline(class_order=CLASS_ORDER)
@@ -237,6 +276,7 @@ def main() -> int:
     figures_dir.mkdir(parents=True, exist_ok=True)
 
     metrics_rows: List[Dict[str, object]] = []
+    per_sample_parts: List[pd.DataFrame] = []
     classification_report: Dict[str, Dict[str, object]] = {}
     directional_report: Dict[str, Dict[str, object]] = {}
     confusion_report: Dict[str, Dict[str, object]] = {}
@@ -273,6 +313,16 @@ def main() -> int:
             y_pred = model.predict(X_split)
             y_proba = model.predict_proba(X_split)
             m = compute_prediction_metrics(y_split, y_pred, y_proba, class_order=CLASS_ORDER)
+            per_sample_parts.append(
+                _build_per_sample_prediction_frame(
+                    sample_table=subset["sample_tables"][split_name],
+                    model_name=model_name,
+                    split_name=split_name,
+                    y_true=y_split,
+                    y_pred=y_pred,
+                    y_proba=y_proba,
+                )
+            )
 
             metrics_rows.append(
                 {
@@ -328,6 +378,8 @@ def main() -> int:
 
     metrics_df = pd.DataFrame(metrics_rows)
     metrics_df.to_csv(output_dir / "metrics.csv", index=False)
+    per_sample_df = pd.concat(per_sample_parts, ignore_index=True)
+    per_sample_df.to_csv(output_dir / "per_sample_predictions.csv", index=False)
 
     (output_dir / "classification_report.json").write_text(
         json.dumps(to_jsonable(classification_report), indent=2), encoding="utf-8"
@@ -468,6 +520,7 @@ def main() -> int:
     lines.append("- Step 5 does not use reconstruction models.")
     lines.append("- Step 5 does not use randomized split protocols.")
     lines.append("- Step 5 does not use plain non-purged chronological split.")
+    lines.append("- Per-sample prediction outputs are saved for Step 7 alignment in `per_sample_predictions.csv`.")
 
     (output_dir / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 

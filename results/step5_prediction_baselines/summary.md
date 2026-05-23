@@ -17,13 +17,6 @@
 - logistic_regression: macro_f1 beat majority, balanced_accuracy beat majority, mcc beat majority
 - mlp: macro_f1 beat majority, balanced_accuracy beat majority, mcc beat majority
 
-## Label Distribution Shift
-- train: down=779, neutral=4002, up=819
-- val: down=132, neutral=922, up=146
-- test: down=288, neutral=451, up=263
-
-The test split has a much lower neutral-class ratio than train/val. This chronological distribution shift makes majority-class prediction unreliable and should be considered when interpreting Step 5 results.
-
 ## Class-Coverage and Collapse Check
 - majority: neutral prediction ratio=1.0000; predicted distribution: down=0, neutral=1002, up=0; neutral collapse risk; missing predicted classes: down, up; low-coverage classes(<2%): down, up; directional collapse risk
 - logistic_regression: neutral prediction ratio=0.6986; predicted distribution: down=199, neutral=700, up=103; no severe class-collapse signal
@@ -33,3 +26,4 @@ The test split has a much lower neutral-class ratio than train/val. This chronol
 - Step 5 does not use reconstruction models.
 - Step 5 does not use randomized split protocols.
 - Step 5 does not use plain non-purged chronological split.
+- Per-sample prediction outputs are saved for Step 7 alignment in `per_sample_predictions.csv`.
