@@ -34,6 +34,7 @@ Step 5 has completed prediction-only baselines on the locked subset. These resul
 | mlp | 0.4531 | 0.3535 | 0.2760 | 0.0589 | 1.7594 |
 
 The best macro-F1 comes from logistic regression, but the log loss is weak. That is a practical signal: the model separates classes slightly better than the majority baseline, but its probabilities are not reliable.
+For selection policy, macro-F1 is the primary metric for this imbalanced directional diagnostic, while log loss is retained as the LOBench-compatible cross-entropy-style probability-quality metric. On the test split, `logistic_regression` is best by macro-F1 and `majority` is best by log loss.
 
 ## Step 6 Reconstruction Snapshot
 
@@ -53,6 +54,7 @@ Observed Step 6 pattern:
 - Both best PCA and best MLP-AE improve over `last_snapshot_repeat` on normalized MSE.
 - For the best model, volume-side reconstruction error is materially larger than price-side reconstruction error.
 - Step 6 artifacts use `model_variant` as the canonical variant key, while keeping `model` (family) and `latent_dim` (numeric compression dimension) as separate fields.
+- Step 6 now also exports `lobench_compatible_reconstruction_metrics.csv`, with LOBench-style MSE/MAE, price/volume, weighted price/volume, weighted MSE, regularization, and all-loss metrics in normalized Step 6 space.
 - Imbalance MAE is now validity-gated: it is reported only when reconstructed/reference volumes satisfy non-negative and denominator checks; otherwise Step 7 should prefer volume-sum and volume-difference diagnostics.
 - `original_mae` / `original_rmse` are measured in Step 3 input feature space after inverse-transforming the Step 6 scaler, not in raw exchange order-flow scale.
 
@@ -73,6 +75,7 @@ Reconstruction metrics:
 
 - Overall MSE / MAE
 - Price-side and volume-side error
+- LOBench-compatible weighted MSE / all-loss
 - Level-wise error
 - Top-of-book error
 

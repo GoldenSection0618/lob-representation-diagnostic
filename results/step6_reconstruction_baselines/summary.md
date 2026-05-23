@@ -10,6 +10,7 @@
 - pca latent dims: [8, 16, 32, 64, 128]
 - mlp_ae latent dims: [16, 32, 64]
 - imbalance gate: eps_threshold=1e-06, valid_ratio_threshold=0.95
+- LOBench-compatible metrics: `lobench_compatible_reconstruction_metrics.csv` (factor=1.5, alpha=0.8, reg_factor=10.0)
 
 ## Best Test Reconstruction
 - best by normalized_mse: pca@128; normalized_mse=0.191170, normalized_mae=0.239629, original_mae=0.135957
@@ -17,6 +18,7 @@
 
 - best pca (pca@128) beat last_snapshot_repeat on test normalized_mse
 - best mlp_ae (mlp_ae@32) beat last_snapshot_repeat on test normalized_mse
+- best by LOBench-compatible weighted_mse_loss: pca@128; weighted_mse_loss=0.072663, all_loss=0.383791
 
 ## Error Concentration (Test)
 - normalized_mse by group (best model): price=0.006855, volume=0.375486, top_of_book=0.152614, last_step=0.260467

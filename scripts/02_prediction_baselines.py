@@ -130,6 +130,12 @@ def _select_best_model(test_rows: List[Dict[str, object]]) -> str:
     return str(sort_df.iloc[0]["model"])
 
 
+def _select_best_by_log_loss(test_rows: List[Dict[str, object]]) -> str:
+    df = pd.DataFrame(test_rows)
+    sort_df = df.sort_values(by=["log_loss", "macro_f1", "mcc"], ascending=[True, False, False])
+    return str(sort_df.iloc[0]["model"])
+
+
 def _plot_primary_metrics(metrics_df: pd.DataFrame, fig_path: Path) -> None:
     test_df = metrics_df[metrics_df["split"] == "test"].copy()
     models = test_df["model"].tolist()
@@ -397,6 +403,10 @@ def main() -> int:
         json.dumps(to_jsonable(pred_dist_report), indent=2), encoding="utf-8"
     )
 
+    test_rows = metrics_df[metrics_df["split"] == "test"].to_dict(orient="records")
+    best_model = _select_best_model(test_rows)
+    best_by_log_loss = _select_best_by_log_loss(test_rows)
+
     run_config = {
         "subset_dir": str(Path(args.subset_dir).resolve()),
         "output_dir": str(output_dir.resolve()),
@@ -417,6 +427,18 @@ def main() -> int:
         },
         "class_order": CLASS_ORDER,
         "class_names": {str(k): v for k, v in CLASS_NAMES.items()},
+        "model_selection_policy": {
+            "primary_for_this_pow": "macro_f1",
+            "tie_breakers_for_primary": ["mcc", "log_loss"],
+            "lobench_reference_metric": "cross_entropy_loss/log_loss",
+            "best_by_macro_f1": best_model,
+            "best_by_log_loss": best_by_log_loss,
+            "best_by_cross_entropy": best_by_log_loss,
+            "note": (
+                "Macro-F1 is used for class-imbalance-aware directional diagnosis; log_loss is reported "
+                "as the LOBench-compatible CE-style probability-quality metric."
+            ),
+        },
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "step3_metadata_summary": subset["metadata"].get("summary", {}),
         "step4_protocol_note": "boundary-purged chronological split",
@@ -435,9 +457,6 @@ def main() -> int:
         },
     }
     (output_dir / "run_config.json").write_text(json.dumps(to_jsonable(run_config), indent=2), encoding="utf-8")
-
-    test_rows = metrics_df[metrics_df["split"] == "test"].to_dict(orient="records")
-    best_model = _select_best_model(test_rows)
 
     _plot_primary_metrics(metrics_df, figures_dir / "primary_metrics_by_model.png")
     _plot_class_distribution(
@@ -473,6 +492,20 @@ def main() -> int:
     lines.append(
         f"- test macro_f1={best_row['macro_f1']:.6f}, balanced_accuracy={best_row['balanced_accuracy']:.6f}, "
         f"mcc={best_row['mcc']:.6f}, log_loss={best_row['log_loss']:.6f}"
+    )
+    best_log_row = metrics_df[(metrics_df["model"] == best_by_log_loss) & (metrics_df["split"] == "test")].iloc[0]
+    lines.append("")
+    lines.append("## Metric Selection Policy")
+    lines.append("- primary for this PoW: macro_f1, tie-broken by mcc then log_loss")
+    lines.append("- LOBench reference metric: cross_entropy_loss/log_loss")
+    lines.append(f"- best_by_macro_f1: `{best_model}`")
+    lines.append(
+        f"- best_by_log_loss / best_by_cross_entropy: `{best_by_log_loss}` "
+        f"(test log_loss={best_log_row['log_loss']:.6f})"
+    )
+    lines.append(
+        "- Macro-F1 is used for class-imbalance-aware directional diagnosis; log_loss is reported as "
+        "the LOBench-compatible CE-style probability-quality metric."
     )
     lines.append("")
     lines.append("## Probability Quality Warning")

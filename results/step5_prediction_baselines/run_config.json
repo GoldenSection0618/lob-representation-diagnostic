@@ -36,6 +36,18 @@
     "1": "neutral",
     "2": "up"
   },
+  "model_selection_policy": {
+    "primary_for_this_pow": "macro_f1",
+    "tie_breakers_for_primary": [
+      "mcc",
+      "log_loss"
+    ],
+    "lobench_reference_metric": "cross_entropy_loss/log_loss",
+    "best_by_macro_f1": "logistic_regression",
+    "best_by_log_loss": "majority",
+    "best_by_cross_entropy": "majority",
+    "note": "Macro-F1 is used for class-imbalance-aware directional diagnosis; log_loss is reported as the LOBench-compatible CE-style probability-quality metric."
+  },
   "timestamp": "2026-05-23T14:12:32.633167Z",
   "step3_metadata_summary": {
     "raw_rows": 50000,

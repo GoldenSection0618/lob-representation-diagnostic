@@ -27,10 +27,14 @@ from src.analysis.reconstruction_metrics import (
     BEST_BID_PRICE1_IDX,
     IMBALANCE_EPS_THRESHOLD,
     IMBALANCE_VALID_RATIO_THRESHOLD,
+    LOBENCH_REG_FACTOR,
+    LOBENCH_WEIGHT_ALPHA,
+    LOBENCH_WEIGHT_FACTOR,
     WINDOW_LEN,
     class_distribution,
     compute_derived_lob_errors,
     compute_feature_group_errors,
+    compute_lobench_compatible_metrics,
     compute_level_wise_errors,
     compute_per_sample_errors,
     compute_primary_metrics,
@@ -336,6 +340,7 @@ def _model_eval(
     level_rows: List[Dict[str, object]] = []
     temporal_rows: List[Dict[str, object]] = []
     derived_rows: List[Dict[str, object]] = []
+    lobench_rows: List[Dict[str, object]] = []
     per_sample_tables: List[pd.DataFrame] = []
 
     for split in ["train", "val", "test"]:
@@ -410,6 +415,11 @@ def _model_eval(
             {"model": model_name, "model_variant": variant, "latent_dim": latent_dim, "split": split, **derived}
         )
 
+        lobench = compute_lobench_compatible_metrics(X_true_scaled=X_true_scaled, X_hat_scaled=X_hat_scaled)
+        lobench_rows.append(
+            {"model": model_name, "model_variant": variant, "latent_dim": latent_dim, "split": split, **lobench}
+        )
+
         per_sample = compute_per_sample_errors(
             X_true_scaled_flat=X_true_scaled_flat,
             X_hat_scaled_flat=X_hat_scaled_flat,
@@ -435,6 +445,7 @@ def _model_eval(
         "level_rows": level_rows,
         "temporal_rows": temporal_rows,
         "derived_rows": derived_rows,
+        "lobench_rows": lobench_rows,
         "per_sample_df": pd.concat(per_sample_tables, ignore_index=True),
     }
 
@@ -527,6 +538,7 @@ def main() -> int:
     level_rows: List[Dict[str, object]] = []
     temporal_rows: List[Dict[str, object]] = []
     derived_rows: List[Dict[str, object]] = []
+    lobench_rows: List[Dict[str, object]] = []
     per_sample_parts: List[pd.DataFrame] = []
     model_manifest: List[Dict[str, object]] = []
     latent_manifest_entries: List[Dict[str, object]] = []
@@ -560,6 +572,7 @@ def main() -> int:
         level_rows.extend(result["level_rows"])
         temporal_rows.extend(result["temporal_rows"])
         derived_rows.extend(result["derived_rows"])
+        lobench_rows.extend(result["lobench_rows"])
         per_sample_parts.append(result["per_sample_df"])
 
         manifest_entry = {
@@ -707,6 +720,7 @@ def main() -> int:
     level_df = pd.DataFrame(level_rows)
     temporal_df = pd.DataFrame(temporal_rows)
     derived_df = pd.DataFrame(derived_rows)
+    lobench_df = pd.DataFrame(lobench_rows)
     per_sample_df = pd.concat(per_sample_parts, ignore_index=True)
 
     metrics_df.to_csv(output_dir / "metrics.csv", index=False)
@@ -721,6 +735,7 @@ def main() -> int:
     level_df.to_csv(output_dir / "level_wise_errors.csv", index=False)
     temporal_df.to_csv(output_dir / "temporal_errors.csv", index=False)
     derived_df.to_csv(output_dir / "derived_lob_errors.csv", index=False)
+    lobench_df.to_csv(output_dir / "lobench_compatible_reconstruction_metrics.csv", index=False)
     per_sample_df.to_csv(output_dir / "per_sample_reconstruction_errors.csv", index=False)
 
     (output_dir / "model_manifest.json").write_text(json.dumps(to_jsonable(model_manifest), indent=2), encoding="utf-8")
@@ -756,6 +771,14 @@ def main() -> int:
         "metric_space_note": {
             "normalized_space": "after train-only Step 6 StandardScaler",
             "original_space": "Step 3 input feature space before Step 6 StandardScaler, not raw exchange order-flow scale",
+        },
+        "lobench_compatible_metrics": {
+            "file": "lobench_compatible_reconstruction_metrics.csv",
+            "space": "normalized_space",
+            "factor": LOBENCH_WEIGHT_FACTOR,
+            "alpha": LOBENCH_WEIGHT_ALPHA,
+            "reg_factor": LOBENCH_REG_FACTOR,
+            "note": "Evaluation-only LOBench-style losses; Step 6 training objectives are unchanged.",
         },
         "step3_metadata_summary": subset["metadata"].get("summary", {}),
         "timestamp": datetime.utcnow().isoformat() + "Z",
@@ -829,6 +852,10 @@ def main() -> int:
         f"- imbalance gate: eps_threshold={IMBALANCE_EPS_THRESHOLD}, "
         f"valid_ratio_threshold={IMBALANCE_VALID_RATIO_THRESHOLD}"
     )
+    lines.append(
+        "- LOBench-compatible metrics: `lobench_compatible_reconstruction_metrics.csv` "
+        f"(factor={LOBENCH_WEIGHT_FACTOR}, alpha={LOBENCH_WEIGHT_ALPHA}, reg_factor={LOBENCH_REG_FACTOR})"
+    )
     lines.append("")
     lines.append("## Best Test Reconstruction")
     lines.append(
@@ -853,6 +880,16 @@ def main() -> int:
         verdict = "beat" if float(best_part["normalized_mse"]) < float(ls_test["normalized_mse"]) else "did not beat"
         lines.append(
             f"- best {model_name} ({_safe_label(model_name, int(best_part['latent_dim']))}) {verdict} last_snapshot_repeat on test normalized_mse"
+        )
+
+    lobench_test = lobench_df[lobench_df["split"] == "test"].copy()
+    if not lobench_test.empty:
+        best_lobench = lobench_test.sort_values("lobench_weighted_mse_loss", ascending=True).iloc[0]
+        l_lat = None if pd.isna(best_lobench["latent_dim"]) else int(best_lobench["latent_dim"])
+        lines.append(
+            f"- best by LOBench-compatible weighted_mse_loss: {_safe_label(str(best_lobench['model']), l_lat)}; "
+            f"weighted_mse_loss={float(best_lobench['lobench_weighted_mse_loss']):.6f}, "
+            f"all_loss={float(best_lobench['lobench_all_loss']):.6f}"
         )
 
     lines.append("")

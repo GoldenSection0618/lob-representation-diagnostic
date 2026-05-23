@@ -11,6 +11,9 @@ WINDOW_LEN = 100
 EPS = 1e-12
 IMBALANCE_EPS_THRESHOLD = 1e-6
 IMBALANCE_VALID_RATIO_THRESHOLD = 0.95
+LOBENCH_WEIGHT_FACTOR = 1.5
+LOBENCH_WEIGHT_ALPHA = 0.8
+LOBENCH_REG_FACTOR = 10.0
 
 BEST_BID_PRICE1_IDX = 9
 BEST_ASK_PRICE1_IDX = 10
@@ -87,6 +90,58 @@ def _top5_volume_indices() -> Dict[str, List[int]]:
     bid = [30 - k for k in range(1, 6)]
     ask = [29 + k for k in range(1, 6)]
     return {"bid": bid, "ask": ask}
+
+
+def _lobench_weights(factor: float = LOBENCH_WEIGHT_FACTOR, half_feature_dim: int = FEATURE_DIM // 2) -> np.ndarray:
+    n = half_feature_dim // 2
+    weights1 = np.asarray([factor**i for i in range(n)], dtype=np.float64)
+    weights1 = weights1 / weights1.sum() * n / np.sqrt(2.0)
+    weights2 = np.asarray([factor**i for i in range(n - 1, -1, -1)], dtype=np.float64)
+    weights2 = weights2 / weights2.sum() * n / np.sqrt(2.0)
+    return np.concatenate([weights1, weights2])
+
+
+def compute_lobench_compatible_metrics(
+    X_true_scaled: np.ndarray,
+    X_hat_scaled: np.ndarray,
+    factor: float = LOBENCH_WEIGHT_FACTOR,
+    alpha: float = LOBENCH_WEIGHT_ALPHA,
+    reg_factor: float = LOBENCH_REG_FACTOR,
+) -> Dict[str, float]:
+    """Compute LOBench-style reconstruction metrics in normalized Step 6 space."""
+    _assert_window_shapes(X_true_scaled, X_hat_scaled)
+
+    h = X_true_scaled.shape[2] // 2
+    true_price = X_true_scaled[:, :, :h]
+    pred_price = X_hat_scaled[:, :, :h]
+    true_volume = X_true_scaled[:, :, h:]
+    pred_volume = X_hat_scaled[:, :, h:]
+
+    weights = _lobench_weights(factor=factor, half_feature_dim=h).reshape(1, 1, -1)
+
+    mse_loss = _to_float(np.mean(np.square(X_hat_scaled - X_true_scaled)))
+    mae_loss = _to_float(np.mean(np.abs(X_hat_scaled - X_true_scaled)))
+    price_loss = _to_float(np.mean(np.square(pred_price - true_price)))
+    volume_loss = _to_float(np.mean(np.square(pred_volume - true_volume)))
+    weighted_price_loss = _to_float(np.mean(np.square((pred_price - true_price) * weights)))
+    weighted_volume_loss = _to_float(np.mean(np.square((pred_volume - true_volume) * weights)))
+    weighted_mse_loss = _to_float(alpha * weighted_price_loss + (1.0 - alpha) * weighted_volume_loss)
+
+    price_diff = pred_price[:, :, :-1] - pred_price[:, :, 1:]
+    reg_loss = _to_float(np.maximum(price_diff, 0.0).mean())
+    all_loss = _to_float(mse_loss + weighted_mse_loss + reg_factor * reg_loss)
+
+    return {
+        "lobench_mse_loss": mse_loss,
+        "lobench_mae_loss": mae_loss,
+        "lobench_price_loss": price_loss,
+        "lobench_volume_loss": volume_loss,
+        "lobench_weighted_price_loss": weighted_price_loss,
+        "lobench_weighted_volume_loss": weighted_volume_loss,
+        "lobench_weighted_mse_loss": weighted_mse_loss,
+        "lobench_reg_loss": reg_loss,
+        "lobench_all_loss": all_loss,
+    }
 
 
 def compute_primary_metrics(

@@ -34,6 +34,7 @@ Step 5 prediction-only test results:
 - `mlp`: `macro_f1=0.2760`, `balanced_accuracy=0.3535`, `mcc=0.0589`, `log_loss=1.7594`
 
 `logistic_regression` is the best test model by macro-F1, but its log loss is poor. I treat that as a useful warning: directional class separation and probability quality are not the same thing.
+The Step 5 selection policy is explicit: macro-F1 is primary for this imbalanced directional diagnostic, while `log_loss` is retained as the LOBench-compatible cross-entropy-style probability-quality metric. On test, `logistic_regression` is best by macro-F1 and `majority` is best by log loss.
 
 Artifacts from Step 5 live under:
 
@@ -46,6 +47,7 @@ Step 6 reconstruction-only test snapshot:
 - Strong compression-constrained point (`latent_dim<=40`): `pca@32` (`normalized_mse=0.2924`)
 - Both best `pca` and best `mlp_ae` variants beat `last_snapshot_repeat` on test normalized-MSE
 - Error concentration for best model is much higher on volume-related dimensions than price dimensions
+- LOBench-compatible reconstruction metrics are exported in `lobench_compatible_reconstruction_metrics.csv`; on test, `pca@128` is also best by weighted MSE.
 - In Step 6, `original_mae` / `original_rmse` mean errors in Step 3 input feature space after inverse-transforming the Step 6 train-only scaler; they are not raw exchange order-flow scale.
 
 Artifacts from Step 6 live under:

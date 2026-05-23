@@ -9,6 +9,13 @@
 - best model by test macro_f1 tie-broken by mcc then log_loss: `logistic_regression`
 - test macro_f1=0.333802, balanced_accuracy=0.350423, mcc=0.025026, log_loss=9.248650
 
+## Metric Selection Policy
+- primary for this PoW: macro_f1, tie-broken by mcc then log_loss
+- LOBench reference metric: cross_entropy_loss/log_loss
+- best_by_macro_f1: `logistic_regression`
+- best_by_log_loss / best_by_cross_entropy: `majority` (test log_loss=1.222762)
+- Macro-F1 is used for class-imbalance-aware directional diagnosis; log_loss is reported as the LOBench-compatible CE-style probability-quality metric.
+
 ## Probability Quality Warning
 - logistic_regression has the best test macro-F1, but its test log_loss is high (9.248650). This suggests poor probability calibration or overconfident errors.
 - It should not be treated as the best calibrated predictor.
