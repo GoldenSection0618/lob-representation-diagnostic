@@ -300,3 +300,32 @@ Canonical key policy remains:
 - `model_variant`: unique variant identifier for Step 7 joins and grouping
 
 No change was made to Step 3 data, Step 4 split protocol, or Step 6 model set.
+
+## Step 6 Metric Safety Patch: Imbalance Validity Gate
+
+I patched reconstruction-derived volume diagnostics to avoid unstable imbalance MAE values on processed features.
+
+Changes:
+
+- Added validity checks for imbalance diagnostics:
+  - `volume_nonnegative_ratio`
+  - `imbalance_denominator_small_ratio`
+  - `imbalance_valid_ratio`
+- `top1_imbalance_mae` and `top5_imbalance_mae` are now computed only on valid points.
+- If valid ratio is below threshold (`0.95`), imbalance MAE is set to null and validity flags are false.
+- Added fallback diagnostics independent of non-negative-ratio assumptions:
+  - `top1_volume_sum_mae`, `top5_volume_sum_mae`
+  - `top1_volume_diff_mae`, `top5_volume_diff_mae`
+
+Outputs updated by re-running Step 6:
+
+- `results/step6_reconstruction_baselines/derived_lob_errors.csv`
+- `results/step6_reconstruction_baselines/per_sample_reconstruction_errors.csv`
+- `results/step6_reconstruction_baselines/summary.md`
+
+Protocol scope unchanged:
+
+- No Step 3 data change.
+- No Step 4 split/protocol change.
+- No random split or no-purge split added.
+- No prediction-head training added.
