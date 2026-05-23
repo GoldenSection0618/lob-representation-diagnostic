@@ -2,9 +2,23 @@
 
 This is an independent PoW repository. It is not a fork of LOBench, and it is not a full reproduction of LOBench or SimLOB.
 
-The question I want to answer is narrower and more useful: if a representation reconstructs the LOB with lower error, does that actually improve downstream mid-price trend prediction? If the answer is inconsistent, I want to know where the gap comes from: specific book levels, specific market regimes, or a mismatch between the reconstruction objective and the prediction task.
+The core question is:
+
+Does better LOB reconstruction imply better downstream mid-price trend prediction under a leakage-aware chronological split?
+
+If the answer is inconsistent, I want to know where the gap comes from: specific book levels, specific market regimes, or a mismatch between the reconstruction objective and the prediction task.
 
 This project is not chasing SOTA and it is not a trading PnL study. The goal is to run controlled experiments and make the data split, labels, metrics, and failure cases explicit.
+
+## Evaluation Protocol
+
+- The main protocol is a boundary-purged chronological split.
+- The split preserves time order: train first, validation next, test last.
+- Boundary windows are purged so train/val and val/test do not share historical rows through overlapping sliding windows.
+- The current code implements this through `chronological_split()` and `_enforce_non_overlap_boundary()`.
+- Random split is not used in the main experiment.
+- No-purge chronological split is not implemented in Step 4.
+- Any future random-split or no-purge result must be clearly labeled as an auxiliary diagnostic, not the main evaluation.
 
 ## What This Repo Does
 
@@ -27,7 +41,7 @@ This project is not chasing SOTA and it is not a trading PnL study. The goal is 
 
 ## Current State
 
-Step 3 is complete. I built a minimal chronological subset from the external processed CSV for `sz000001`.
+Step 3 is complete and Step 4 locks the evaluation protocol. I built a minimal chronological subset from the external processed CSV for `sz000001`.
 
 Key facts:
 
@@ -42,7 +56,7 @@ Key facts:
 - Shape: `X=(7802, 100, 40)`, `y=(7802,)`
 - Checks passed: feature contract, label contract, window alignment, chronological split, and output safety.
 
-Next step: Step 4, implement reconstruction baselines without changing the Step 3 data contract.
+Next step: Step 5, build a prediction-only baseline under the locked leakage-aware chronological protocol.
 
 ## Repository Layout
 
@@ -53,6 +67,7 @@ Next step: Step 4, implement reconstruction baselines without changing the Step 
 - `src/analysis/`: reconstruction-prediction alignment, level-wise error, and regime failure analysis.
 - `src/utils/`: metrics, seed control, profiling, and shared utilities.
 - `scripts/`: runnable stage-by-stage entry points.
+- `docs/`: protocol notes and concise methodology references.
 - `results/`: experiment outputs.
 - `figures/`: generated plots and diagnostics.
 - Root docs: environment notes, data contract, execution log, and technical memo.
