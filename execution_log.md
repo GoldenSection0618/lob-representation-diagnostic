@@ -265,3 +265,26 @@ Protocol invariants preserved:
 - Step 6 did not run reconstruction-prediction alignment.
 
 Next step is Step 7 alignment analysis using `per_sample_reconstruction_errors.csv` together with prediction outputs under the same locked protocol.
+
+## Step 6 Artifact Contract Fix: model_variant Key
+
+I patched Step 6 output artifacts to add `model_variant` as the unique model-configuration key, while keeping `model` as the base family key.
+
+Applied to:
+
+- `results/step6_reconstruction_baselines/metrics.csv`
+- `results/step6_reconstruction_baselines/rate_distortion.csv`
+- `results/step6_reconstruction_baselines/feature_group_errors.csv`
+- `results/step6_reconstruction_baselines/level_wise_errors.csv`
+- `results/step6_reconstruction_baselines/temporal_errors.csv`
+- `results/step6_reconstruction_baselines/derived_lob_errors.csv`
+- `results/step6_reconstruction_baselines/per_sample_reconstruction_errors.csv`
+
+Variant mapping rule now used:
+
+- `train_mean_window` -> `train_mean_window`
+- `last_snapshot_repeat` + `latent_dim=40` -> `last_snapshot_repeat@40`
+- `pca` + `latent_dim=d` -> `pca@d`
+- `mlp_ae` + `latent_dim=d` -> `mlp_ae@d`
+
+This change does not alter Step 3 data, Step 4 protocol, Step 6 split behavior, or any model-training logic.
