@@ -84,5 +84,18 @@
       }
     }
   },
-  "step4_protocol_note": "boundary-purged chronological split"
+  "step4_protocol_note": "boundary-purged chronological split",
+  "per_sample_prediction_output": {
+    "file": "per_sample_predictions.csv",
+    "splits": [
+      "val",
+      "test"
+    ],
+    "join_keys": [
+      "sample_id",
+      "split",
+      "model"
+    ],
+    "direction_correct_non_neutral_semantics": "1.0/0.0 for true non-neutral samples; null for neutral samples"
+  }
 }

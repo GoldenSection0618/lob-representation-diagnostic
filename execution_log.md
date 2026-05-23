@@ -383,6 +383,12 @@ I fixed per-sample directional semantics in `results/step5_prediction_baselines/
 
 This avoids accidental denominator leakage if Step 7 aggregates directional correctness directly from the per-sample table.
 
+I also made the Step 5 per-sample prediction interface self-describing in `run_config.json`:
+
+- `per_sample_predictions.csv` is generated for val/test only.
+- Step 7 joins on `sample_id`, `split`, and `model`.
+- `direction_correct_non_neutral` uses numeric 1.0/0.0 for true non-neutral samples and null for neutral samples.
+
 ## Step 6 Metric-Space Clarification
 
 I added explicit metric-space notes to avoid misreading `original_mae` / `original_rmse` as raw exchange-scale errors.

@@ -27,4 +27,5 @@
 - Step 5 does not use randomized split protocols.
 - Step 5 does not use plain non-purged chronological split.
 - Per-sample prediction outputs are saved for Step 7 alignment in `per_sample_predictions.csv`.
+- Per-sample prediction outputs cover val/test only and join on `sample_id`, `split`, and `model`.
 - `direction_correct_non_neutral` is encoded as 1.0/0.0 for true non-neutral samples and null for neutral samples.

@@ -420,6 +420,14 @@ def main() -> int:
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "step3_metadata_summary": subset["metadata"].get("summary", {}),
         "step4_protocol_note": "boundary-purged chronological split",
+        "per_sample_prediction_output": {
+            "file": "per_sample_predictions.csv",
+            "splits": ["val", "test"],
+            "join_keys": ["sample_id", "split", "model"],
+            "direction_correct_non_neutral_semantics": (
+                "1.0/0.0 for true non-neutral samples; null for neutral samples"
+            ),
+        },
     }
     (output_dir / "run_config.json").write_text(json.dumps(to_jsonable(run_config), indent=2), encoding="utf-8")
 
@@ -524,6 +532,7 @@ def main() -> int:
     lines.append("- Step 5 does not use randomized split protocols.")
     lines.append("- Step 5 does not use plain non-purged chronological split.")
     lines.append("- Per-sample prediction outputs are saved for Step 7 alignment in `per_sample_predictions.csv`.")
+    lines.append("- Per-sample prediction outputs cover val/test only and join on `sample_id`, `split`, and `model`.")
     lines.append(
         "- `direction_correct_non_neutral` is encoded as 1.0/0.0 for true non-neutral samples "
         "and null for neutral samples."
