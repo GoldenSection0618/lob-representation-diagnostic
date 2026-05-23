@@ -1,84 +1,31 @@
 # Technical Memo
 
-This memo will hold the final experiment story. For now, it records the research framing I want to keep fixed before training results start influencing the narrative.
+This memo is the working narrative for the experiment. I keep the framing explicit so later model results do not rewrite the question after the fact.
 
-## Problem
+## Core Question
 
-I am not asking only whether a model can reconstruct the LOB more accurately. I am asking whether that better reconstruction transfers to downstream mid-price trend prediction under leakage-aware chronological evaluation.
+The project is not asking whether a model can make the LOB look better under reconstruction loss. It asks whether that better reconstruction transfers into mid-price trend prediction under a leakage-aware chronological evaluation.
 
-Those two objectives can diverge. A reconstruction loss averages across the whole book, while trend prediction often depends more on top-of-book behavior, short-term order imbalance, spread changes, and local liquidity shocks. If a model spends capacity reconstructing distant levels or low-value noise, the reconstruction metric can improve while the prediction task gets little benefit.
+The distinction matters. Reconstruction loss averages across the book. Trend prediction often lives closer to top-of-book behavior, short-term imbalance, spread changes, and local liquidity shocks. A model can spend capacity on distant levels or stable noise and still look good on reconstruction while doing little for the decision target.
 
-That is why this PoW is a diagnostic study, not a leaderboard exercise.
+That is the diagnostic angle of this PoW.
 
-## Experimental Setup
+## Current Setup
 
-The first stage uses one controlled subset:
+The first controlled subset is:
 
 - Symbol: `sz000001`
-- Data source: `~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv`
+- Source: `~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv`
 - Input: `(N, 100, 40)`
 - Label: `trend5`
 - Split: boundary-purged chronological `70/15/15`
 - Samples: `7802`
 
-The main protocol is stricter than a plain chronological split because overlapping boundary windows are removed between train/validation and validation/test.
+The split is stricter than plain chronological evaluation because overlapping historical windows are removed at train/validation and validation/test boundaries. Random split is not part of the main experiment. No-purge chronological split is left for later ablation work.
 
-Random split is not part of the main experiment.
+## Baseline Snapshot
 
-No-purge chronological split is postponed and treated as future ablation work, not current main delivery.
-
-## What I Plan to Compare
-
-Step 5 has completed prediction-only baseline evaluation under the locked boundary-purged chronological protocol. The next experimental step is to implement reconstruction baselines and measure whether reconstruction quality aligns with downstream prediction performance.
-
-The next comparison is between reconstruction baselines with different reconstruction quality, followed by prediction heads trained on their representations.
-
-The comparisons should answer a few concrete questions:
-
-- When reconstruction error decreases, do prediction accuracy and macro-F1 improve as well?
-- Which levels drive the error? Top-of-book mistakes usually matter more than distant-level mistakes for trend prediction.
-- Which regimes break the representation? Spread widening, higher volatility, and weak trend periods are the first places to inspect.
-- Is the representation worth its cost? If it only improves reconstruction while making prediction slower or less stable, it is not useful in practice.
-
-## Metrics
-
-Reconstruction side:
-
-- Overall MSE / MAE
-- Price-side error and volume-side error
-- Level-wise error
-- Top-of-book error
-
-Prediction side:
-
-- Accuracy
-- Macro-F1
-- Per-class precision / recall
-- Confusion matrix
-
-Diagnostic side:
-
-- Correlation between reconstruction metrics and prediction metrics.
-- Relationship between level-wise error and prediction failure.
-- Performance sliced by spread, volatility, and mid-price movement strength.
-
-## Current Limits
-
-Step 5 prediction-only baselines are now available, but reconstruction-alignment conclusions are still out of scope.
-
-Known limits:
-
-- The current subset covers only one segment of `sz000001`.
-- Data stays outside the repo, so reproduction requires the external dataset path locally.
-- The first label is fixed to `trend5`; other horizons are not yet part of the main experiment.
-- There is no multi-symbol, multi-date, or cross-regime robustness result yet.
-- Reconstruction baselines have not been run yet.
-- Current model-quality conclusions are limited to prediction-only baselines under the locked protocol.
-- Reconstruction-prediction alignment is not claimed yet.
-
-## Step 5 Snapshot (Prediction-Only)
-
-Test-split summary on the locked Step 3 subset:
+Step 5 has completed prediction-only baselines on the locked subset. These results set a floor; they do not say anything yet about reconstruction quality or representation transfer.
 
 | Model | Accuracy | Balanced Accuracy | Macro-F1 | MCC | Log Loss |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -86,10 +33,48 @@ Test-split summary on the locked Step 3 subset:
 | logistic_regression | 0.4122 | 0.3504 | 0.3338 | 0.0250 | 9.2487 |
 | mlp | 0.4531 | 0.3535 | 0.2760 | 0.0589 | 1.7594 |
 
-Interpretation bounds:
+The best macro-F1 comes from logistic regression, but the log loss is weak. That is a practical signal: the model separates classes slightly better than the majority baseline, but its probabilities are not reliable.
 
-- These are prediction-only baseline results.
-- They do not validate reconstruction quality or reconstruction-to-prediction transfer.
-- Any reconstruction alignment claim must wait for later steps.
+## Next Comparison
 
-Next step: implement reconstruction baselines and then test reconstruction-prediction alignment under the same locked protocol.
+The next step is to train reconstruction baselines, extract representations, and attach prediction heads under the same split. I want the comparison to answer:
+
+- Does lower reconstruction error improve accuracy or macro-F1?
+- Are top-of-book errors more predictive of downstream failure than deeper-level errors?
+- Do spread widening, higher volatility, or weak-trend periods break the representation first?
+- Does any representation justify its latency or compression cost?
+
+## Metrics
+
+Reconstruction metrics:
+
+- Overall MSE / MAE
+- Price-side and volume-side error
+- Level-wise error
+- Top-of-book error
+
+Prediction metrics:
+
+- Accuracy
+- Macro-F1
+- Per-class precision / recall
+- Confusion matrix
+
+Diagnostic cuts:
+
+- Correlation between reconstruction metrics and prediction metrics
+- Level-wise error versus prediction failure
+- Performance by spread, volatility, and mid-price movement strength
+
+## Limits
+
+The current evidence is intentionally narrow:
+
+- Only one segment of `sz000001` is covered.
+- The external dataset is required locally and is not committed to the repo.
+- The active label is `trend5`; other horizons remain future sensitivity checks.
+- There is no multi-symbol, multi-date, or cross-regime robustness result yet.
+- Reconstruction baselines have not been run.
+- Reconstruction-prediction alignment is not claimed.
+
+The next meaningful milestone is Step 6-level analysis after reconstruction baselines exist: compare reconstruction quality, prediction quality, and failure modes under the same locked protocol.

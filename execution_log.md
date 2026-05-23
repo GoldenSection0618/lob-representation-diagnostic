@@ -1,14 +1,14 @@
 # PoW Execution Log
 
-This log records decisions and reproducibility-relevant facts. It is not a full activity diary.
+This log keeps the decisions and run facts that matter for reproduction. It avoids narrative filler.
 
-## Step 1: Lock the Boundary First
+## Step 1: Repository Boundary
 
-I initialized an independent PoW repository at `~/lob-representation-diagnostic`.
+I initialized `~/lob-representation-diagnostic` as an independent diagnostic repo. It is not a LOBench fork and not a full reproduction.
 
-The repository is a diagnostic experiment, not a LOBench fork and not a full reproduction. The core question is whether better LOB reconstruction reliably transfers into better mid-price trend prediction.
+The question I locked at the start: does better LOB reconstruction reliably transfer into better downstream mid-price trend prediction?
 
-Initial project files and directories:
+Initial project skeleton:
 
 - `README.md`
 - `environment.md`
@@ -20,11 +20,11 @@ Initial project files and directories:
 - `results/`
 - `figures/`
 
-The next move was to inspect the LOBench / SimLOB-style data pipeline and lock the dataset format, loader entry points, split behavior, label definition, and minimal subset requirements.
+The first practical task was to inspect the LOBench / SimLOB-style data pipeline and pin down format, loader entry points, labels, split behavior, and minimal subset requirements.
 
-## Step 2: Inspect the Upstream Data Pipeline
+## Step 2: Upstream Inspection
 
-I inspected the local `~/LOBench` checkout at commit `c8fe9e7`.
+I inspected `~/LOBench` at commit `c8fe9e7`.
 
 Files reviewed:
 
@@ -35,26 +35,26 @@ Files reviewed:
 - `~/LOBench/config_template.json`
 - `~/LOBench/README.md`
 
-Findings that drive the PoW design:
+What mattered:
 
-- The main A-share path is in `data_ashare.py`.
-- Processed/simulation-style logic is in `data_processing.py`.
-- `data_prepare.py` works on already saved tensors and random split; it is not a good main contract for this PoW.
-- The inspected upstream code uses `CSV`, `NPZ`, and `PT`. Hugging Face is a distribution path, not the direct runtime loader I observed.
-- The 40-feature LOB layout expands 10 levels of bid/ask prices and volumes.
+- `data_ashare.py` is the main A-share path.
+- `data_processing.py` carries the processed/simulation-style feature and label path.
+- `data_prepare.py` works on saved tensors and random split, so it is not the main PoW contract.
+- The inspected upstream code uses `CSV`, `NPZ`, and `PT`.
+- The 40-feature layout expands 10 levels of bid/ask prices and volumes.
 - `midPrice = (bestBidPrice1 + bestAskPrice1)/2`.
 - `spread = bestAskPrice1 - bestBidPrice1`.
-- `data_processing.py` builds three-class trend labels from a thresholded future rolling-mean gap, with horizons `{1,3,5,7,10}`.
-- `data_ashare.py` has another label convention using `{-1,0,1}` and a relative threshold, so I do not mix the two definitions.
-- Upstream defaults lean toward random split. This PoW uses chronological split for the main experiment.
+- `data_processing.py` builds three-class trend labels from a thresholded future rolling-mean gap over horizons `{1,3,5,7,10}`.
+- `data_ashare.py` uses a different `{-1,0,1}` label convention with a relative threshold; I do not mix it into the main contract.
+- Upstream defaults lean random-split. The PoW main protocol is chronological and boundary-purged.
 
-I also confirmed that local external processed A-share files exist under `~/datasets/LOBench-A-share-processed` as `*-level10_processed.csv`. The data remains outside git.
+I also verified external processed A-share files under `~/datasets/LOBench-A-share-processed`. They remain outside git.
 
-The main open points after Step 2 were field naming (`bestBidPrice*` vs `BidPrice*`), whether labels should be regenerated, and what sampling stride to use in Step 3. Step 3 converted those into an explicit code contract.
+The inspection left three implementation choices: source field names, whether to regenerate labels, and sampling stride. Step 3 turned those into code and metadata.
 
-## Step 3: Build the Minimal Chronological Subset
+## Step 3: Minimal Chronological Subset
 
-The goal was to run one clean data path: read one external processed CSV, map it into the canonical 40-feature layout, generate LOBench-style `trend5` labels, build `window=100` samples, and enforce a chronological `70/15/15` split.
+I built one clean data path: read one external processed CSV, map it into the canonical 40-feature layout, generate `trend5`, create `window=100` samples, and split them chronologically with boundary purge.
 
 Files touched:
 
@@ -66,8 +66,6 @@ Files touched:
 - `data_note.md`
 - `README.md`
 - `execution_log.md`
-
-I ran a dry run first, then wrote outputs.
 
 Dry run:
 
@@ -81,20 +79,11 @@ Output run:
 mamba run -n lob python scripts/01_prepare_data.py --input-csv ~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv --symbol sz000001 --output-dir data/processed/minimal_subset --window-len 100 --label-horizon 5 --threshold 0.0001 --split-ratio 70/15/15 --row-limit 50000 --max-samples 8000
 ```
 
-Input file:
+Run facts:
 
-- `~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv`
-
-Output directory:
-
-- `data/processed/minimal_subset/`
-
-Metadata:
-
-- `data/processed/minimal_subset/metadata.json`
-
-Final run facts:
-
+- Input: `~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv`
+- Output: `data/processed/minimal_subset/`
+- Metadata: `data/processed/minimal_subset/metadata.json`
 - Raw rows used: `50000`
 - Usable rows after label trimming: `49990`
 - Final samples: `7802`
@@ -114,38 +103,23 @@ Checks passed:
 - `chronological_split_check`
 - `output_safety_check`
 
-Step 3 is complete. Step 4 locks the evaluation protocol before baseline modeling.
+## Step 4: Evaluation Protocol Lock
 
-## Step 4: Lock the Leakage-Aware Chronological Evaluation Protocol
+Step 4 locked the leakage-aware protocol before baseline modeling.
 
-Step 4 is a documentation and protocol-locking step.
+No data pipeline changes were made. No random split was added. No no-purge chronological split was added. The existing `chronological_split()` path, with mandatory boundary purge, remains the main protocol.
 
-What changed:
+The invariant is:
 
-- Step 4 did not change the Step 3 data pipeline.
-- Step 4 did not add random split.
-- Step 4 did not add no-purge split.
-- The existing `chronological_split()` implementation remains the main protocol.
-- Boundary purge is mandatory for the current main evaluation.
+- Train label rows come before validation label rows, and validation comes before test.
+- Train/validation boundary windows do not share historical rows.
+- Validation/test boundary windows do not share historical rows.
 
-Key invariant:
+Step 5 could then evaluate prediction-only baselines without reopening the split policy.
 
-The main split must satisfy:
+## Step 5: Prediction-Only Baselines
 
-- train label rows < validation label rows < test label rows
-- train/validation boundary windows must not overlap in historical rows
-- validation/test boundary windows must not overlap in historical rows
-
-Next step:
-
-Step 5 will build prediction-only baselines before reconstruction baselines.
-
-## Step 5: Build Prediction-Only Baselines
-
-Objective:
-
-- Build prediction floor baselines directly on the locked Step 3 subset.
-- Keep Step 3 data contract and Step 4 protocol unchanged.
+I built prediction floors directly on the locked Step 3 subset. This step measures how far simple supervised models get before any reconstruction or representation learning is introduced.
 
 Files added or modified:
 
@@ -159,7 +133,7 @@ Files added or modified:
 - `technical_memo.md`
 - `execution_log.md`
 
-Command used:
+Command:
 
 ```bash
 mamba run -n lob python scripts/02_prediction_baselines.py \
@@ -173,23 +147,19 @@ mamba run -n lob python scripts/02_prediction_baselines.py \
   --device auto
 ```
 
-Split sizes (from `samples.csv` only, no re-split):
+The script used the existing `samples.csv` split and did not re-split data.
+
+Split sizes:
 
 - train: `5600`
 - val: `1200`
 - test: `1002`
 
-Models run:
+Test metrics:
 
-- majority
-- logistic_regression
-- mlp
-
-Key test metrics:
-
-- majority: `accuracy=0.4501`, `balanced_accuracy=0.3333`, `macro_f1=0.2069`, `mcc=0.0000`, `log_loss=1.2228`
-- logistic_regression: `accuracy=0.4122`, `balanced_accuracy=0.3504`, `macro_f1=0.3338`, `mcc=0.0250`, `log_loss=9.2487`
-- mlp: `accuracy=0.4531`, `balanced_accuracy=0.3535`, `macro_f1=0.2760`, `mcc=0.0589`, `log_loss=1.7594`
+- `majority`: `accuracy=0.4501`, `balanced_accuracy=0.3333`, `macro_f1=0.2069`, `mcc=0.0000`, `log_loss=1.2228`
+- `logistic_regression`: `accuracy=0.4122`, `balanced_accuracy=0.3504`, `macro_f1=0.3338`, `mcc=0.0250`, `log_loss=9.2487`
+- `mlp`: `accuracy=0.4531`, `balanced_accuracy=0.3535`, `macro_f1=0.2760`, `mcc=0.0589`, `log_loss=1.7594`
 
 Generated result files:
 
@@ -209,8 +179,4 @@ Generated figures:
 - `figures/step5_prediction_baselines/directional_error_summary.png`
 - `figures/step5_prediction_baselines/log_loss_by_model.png`
 
-Protocol confirmation:
-
-- Step 5 did not modify the Step 3 data contract.
-- Step 5 did not modify the Step 4 boundary-purged chronological protocol.
-- Step 5 did not add alternative split protocols in code.
+Step 5 kept the Step 3 data contract and Step 4 protocol unchanged. Reconstruction baselines are still the next step.

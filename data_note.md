@@ -1,12 +1,10 @@
 # Data Note
 
-This note locks the data contract. Baselines, prediction heads, and analysis code should follow this document so that we do not keep changing the dataset definition while interpreting results.
+This document is the data contract for the PoW. Model code, baselines, and analysis should follow it rather than reinterpreting the dataset midstream.
 
-## Upstream Reading
+## Upstream Reference
 
-I use the local `~/LOBench` checkout as reference material, not as project code.
-
-Files inspected:
+I use the local `~/LOBench` checkout as read-only reference material. I inspected:
 
 - `~/LOBench/data/data_ashare.py`
 - `~/LOBench/data/data_processing.py`
@@ -15,103 +13,92 @@ Files inspected:
 - `~/LOBench/config_template.json`
 - `~/LOBench/README.md`
 
-Key decisions:
+The useful split of responsibilities is clear enough:
 
-- `data_ashare.py` is the main A-share LOB pipeline. It covers raw CSV reading, trading-session filtering, 3-second resampling, normalization, sliding windows, trend labels, balanced sampling, and NPZ-to-PyTorch dataset/datamodule loading.
-- `data_processing.py` is the processed/simulation-style entry point. It contains 40-feature extraction, `get_labels`, and sequence sample generation.
-- `data_prepare.py` is closer to a tensor dataloader helper: it loads with `torch.load` and applies random split. It is not the raw A-share preprocessing entry point.
-- The inspected upstream code uses `CSV`, `NPZ`, and `PT`. Hugging Face appears as a distribution path in the README, not as the direct runtime loader in the inspected pipeline.
-- The upstream default is random-split oriented. The main experiment in this PoW uses chronological split instead.
+- `data_ashare.py` is the main A-share pipeline: raw CSV reading, trading-session filtering, 3-second resampling, normalization, sliding windows, trend labels, balanced sampling, and NPZ-to-PyTorch loading.
+- `data_processing.py` is the processed/simulation-style path with 40-feature extraction, `get_labels`, and sequence sample generation.
+- `data_prepare.py` loads already materialized tensors and applies random split. I do not use it as the PoW contract.
+- The upstream code I inspected works with `CSV`, `NPZ`, and `PT`. Hugging Face is a distribution channel in the README, not the runtime loader I observed.
 
-Local data status was checked on `2026-05-23`: external processed data exists at `~/datasets/LOBench-A-share-processed`, and the data is not committed to this repository.
+The local external dataset was present on `2026-05-23` at `~/datasets/LOBench-A-share-processed`. It stays outside git.
 
-## Input Object
+## LOB Window Contract
 
-I represent one LOB window as:
+A window is represented as:
 
 $$
 X_t \in \mathbb{R}^{T \times L \times F}
 $$
 
-For the first runnable contract in this PoW:
+The current contract fixes:
 
-- `T=100`, following the common upstream `observe_time=100` / `window=100` setup.
+- `T=100`, aligned with upstream `observe_time=100` / `window=100`.
 - `L=10`, using 10 book levels.
 - `F=4`, with bid price, ask price, bid volume, and ask volume per level.
-- The canonical storage format is flattened `[T, 40]`.
-- `[2, T, 20]` is only a derived view for models that need channel splitting. It is not the canonical storage format.
+- Canonical storage: flattened `[T, 40]`.
+- Optional model view: `[2, T, 20]`, derived from `[T, 40]` only when a model needs channel splitting.
 
-Default shapes:
+Expected shapes:
 
-- Single sample: `(100, 40)`
-- Batched samples: `(N, 100, 40)`
-- Structured interpretation: `(N, 100, 10, 4)`
+- One sample: `(100, 40)`
+- Batch: `(N, 100, 40)`
+- Structured view: `(N, 100, 10, 4)`
 
 ## Feature Order
 
-The 40-column order from `data_processing.py` is:
+The canonical 40-column order follows `data_processing.py`:
 
-- Bid prices: `bestBidPrice10` to `bestBidPrice1`
-- Ask prices: `bestAskPrice1` to `bestAskPrice10`
-- Bid volumes: `bestBidVolume10` to `bestBidVolume1`
-- Ask volumes: `bestAskVolume1` to `bestAskVolume10`
+- Bid prices: `bestBidPrice10` through `bestBidPrice1`
+- Ask prices: `bestAskPrice1` through `bestAskPrice10`
+- Bid volumes: `bestBidVolume10` through `bestBidVolume1`
+- Ask volumes: `bestAskVolume1` through `bestAskVolume10`
 
-Top-of-book fields:
+Top-of-book is `bestBidPrice1`, `bestBidVolume1`, `bestAskPrice1`, and `bestAskVolume1`.
 
-- Bid: `bestBidPrice1`, `bestBidVolume1`
-- Ask: `bestAskPrice1`, `bestAskVolume1`
+Some A-share files use `BidPrice* / AskPrice* / BidVolume* / AskVolume*` without the `best` prefix. The PoW loader maps those fields explicitly into the canonical names. I do not let downstream code guess the convention.
 
-`data_ashare.py` uses the same type of fields without the `best` prefix: `BidPrice* / AskPrice* / BidVolume* / AskVolume*`. The PoW code maps these source names explicitly into the canonical `best*` names. I do not want metrics or model code to infer the naming convention implicitly.
+## Labels
 
-## Mid-Price, Spread, and Trend Labels
-
-Following `data_processing.py`:
+The main label contract follows `data_processing.py`:
 
 - `midPrice = (bestBidPrice1 + bestAskPrice1) / 2`
 - `spread = bestAskPrice1 - bestBidPrice1`
+- Trend is the gap between a future rolling mean and current mid-price.
+- Horizons are `h in {1,3,5,7,10}`.
+- Label fields are `trend1`, `trend3`, `trend5`, `trend7`, `trend10`.
+- Default threshold is `0.0001`.
+- Class mapping is `2` for up, `0` for down, and `1` for neutral.
 
-Trend labels use the gap between a future rolling mean and the current mid-price:
+`data_ashare.py` has a related relative-threshold label using `theta` and `{-1,0,1}`. I keep it documented as an upstream variant, but it is not the main PoW label definition. Mixing both would make the metrics ambiguous.
 
-- Horizons: `h in {1,3,5,7,10}`
-- Label fields: `trend1`, `trend3`, `trend5`, `trend7`, `trend10`
-- Default threshold: `0.0001`
-- Three-class mapping: up is `2`, down is `0`, neutral is `1`
+The first downstream target is `trend5`; the other horizons are reserved for later sensitivity checks.
 
-`data_ashare.py` also has a relative-threshold variant using `theta` and labels in `{-1,0,1}`. I record it as an upstream variant, but I do not use it as the main experiment contract. Mixing the two label definitions would make downstream metrics hard to interpret.
+## Split Policy
 
-The first downstream run uses `trend5`. `trend1/3/7/10` can be added later for sensitivity analysis.
+The main split is boundary-purged chronological. The Step 3 subset already applies it, and Step 4 locked it as the current evaluation protocol.
 
-## Chronological Split Policy
+The rule is intentionally conservative. LOB windows overlap heavily, so a plain random split can put near-neighbor windows into train and test. Even a chronological split needs boundary purge, otherwise adjacent segments can share historical rows through the sliding window.
 
-The main experiment uses boundary-purged chronological split.
+Current rules:
 
-Boundary purge is mandatory for the current main protocol, and the Step 3 subset already applies it.
+- Train, validation, and test preserve time order.
+- Sample IDs and label rows do not overlap across splits.
+- Historical rows do not overlap across train/validation or validation/test boundaries.
+- Random split is auxiliary only if it is ever added.
+- No-purge chronological split is a future ablation, not the current main protocol.
 
-I do not use random split in the main workflow. LOB windows are highly time-dependent and heavily overlapping; random split can place near-neighbor windows into train and test and leak temporal context.
+Default ratio: `70/15/15`.
 
-Main rules:
+## Step 3 Subset
 
-- Train, validation, and test must preserve time order.
-- The three segments must not overlap in sample IDs or label rows.
-- Boundary windows must be purged so adjacent split boundaries do not share historical rows.
-- Any random-split result must be labeled as an auxiliary diagnostic only.
-- No-purge chronological split is intentionally postponed because it is an ablation, not required for the current PoW main delivery.
+The minimal subset build completed on `2026-05-23`.
 
-The current default split ratio is `70/15/15`.
-
-## Step 3 Actual Subset
-
-I completed the minimal subset build on `2026-05-23`.
-
-Input:
+Input and parameters:
 
 - Symbol: `sz000001`
 - CSV: `~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv`
 - Source fields: `BidPrice* / AskPrice* / BidVolume* / AskVolume*`
-- Output directory: `data/processed/minimal_subset/`
-
-Parameters:
-
+- Output: `data/processed/minimal_subset/`
 - `window_len=100`
 - `label_horizon=5`
 - `threshold=0.0001`
@@ -119,7 +106,7 @@ Parameters:
 - `row_limit=50000`
 - `max_samples=8000`
 
-Results:
+Output facts:
 
 - Usable rows after label trimming: `49990`
 - Final samples after boundary purge: `7802`
@@ -130,18 +117,18 @@ Results:
 - Validation label rows: `5798..6997`
 - Test label rows: `7097..8098`
 
-Checks:
+Checks passed:
 
-- `feature_contract_check` passed
-- `label_contract_check` passed
-- `window_alignment_check` passed
-- `chronological_split_check` passed
-- `output_safety_check` passed
+- `feature_contract_check`
+- `label_contract_check`
+- `window_alignment_check`
+- `chronological_split_check`
+- `output_safety_check`
 
-The important part is not the sample count. The important part is that field mapping, windowing, labeling, splitting, and boundary handling are all recorded and auditable through metadata.
+The sample count is not the headline. The headline is that field mapping, labels, windows, split boundaries, and output safety are all explicit and auditable through metadata.
 
-## Open Decisions
+## Remaining Choices
 
-- Whether future fixed subsets should keep using `row_limit + max_samples`, or move to explicit date ranges.
-- For the current main protocol, boundary purge is mandatory. Making it configurable is postponed to future ablation work.
-- For multi-symbol experiments, whether normalization and splitting should happen per symbol or through a broader cross-symbol design.
+- Fixed subsets can stay on `row_limit + max_samples`, or move to explicit date ranges.
+- Boundary purge is mandatory for the current protocol; making it configurable belongs in ablation work.
+- Multi-symbol experiments still need a decision on per-symbol versus cross-symbol normalization and splitting.

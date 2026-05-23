@@ -1,15 +1,14 @@
 # Environment
 
-This repository runs locally at `~/lob-representation-diagnostic`. The upstream LOBench checkout lives at `~/LOBench`. They are sibling directories. I treat the upstream repo as read-only reference material for data contracts, fields, and label logic; this PoW repo contains only my own code and notes.
+The PoW repo lives at `~/lob-representation-diagnostic`. The upstream LOBench checkout lives next to it at `~/LOBench`. I use upstream as read-only reference material and keep project code, notes, and outputs in this repo.
 
 ## Runtime
 
 - Conda environment: `lob`
-- Python scripts should run through `mamba run -n lob ...`.
-- Dependency changes should go through `mamba`, not direct `pip install` or direct `conda install`.
-- Step 2/3 covered data contract inspection and subset construction. No full model training has been run yet.
+- Run project Python through `mamba run -n lob ...`.
+- Change dependencies with `mamba`; do not use direct `pip install` or direct `conda install` for this project.
 
-Core dependencies:
+Core packages:
 
 - `numpy`
 - `pandas`
@@ -18,14 +17,14 @@ Core dependencies:
 - `pyyaml`
 - `tqdm`
 
-Training dependencies (installed in `lob`):
+Training packages already installed in `lob`:
 
 - `torch==2.10.0`
 - `pytorch-lightning==2.6.1`
 
-## Upstream Reference
+## Upstream Checkout
 
-The inspected local LOBench commit is `c8fe9e7`.
+Inspected LOBench commit: `c8fe9e7`.
 
 Files inspected:
 
@@ -36,11 +35,11 @@ Files inspected:
 - `~/LOBench/config_template.json`
 - `~/LOBench/README.md`
 
-The upstream repo has multiple data entry points. `data_ashare.py` is closer to the A-share main path. `data_processing.py` covers processed/simulation-style data. `data_prepare.py` mainly splits already materialized tensors. That difference matters for labels and split behavior, so I do not copy one file blindly as the project contract.
+I use these files to understand the data and label conventions, not as copied project code. The distinction matters because upstream has multiple split and label paths, and the PoW intentionally locks one conservative evaluation protocol.
 
-## Data Paths
+## Data
 
-These paths may exist locally, but must not be committed:
+Local paths that may exist but must stay out of git:
 
 - `data/raw/`
 - `data/processed/`
@@ -49,12 +48,13 @@ These paths may exist locally, but must not be committed:
 - `~/LOBench/dataset/train_data/`
 - `~/LOBench/dataset/simu_data/`
 
-The external processed dataset comes from Hugging Face dataset `mythezone/LOBench-A-share-processed`. Local path:
+External processed data:
 
-- `~/datasets/LOBench-A-share-processed`
+- Dataset: `mythezone/LOBench-A-share-processed`
+- Local path: `~/datasets/LOBench-A-share-processed`
 
-I verified that this local directory contains multiple `*-level10_processed.csv` files, including `sz000001`, `sz000002`, `sz002415`, `sz000858`, `sz300147`, and `sz300750`. These files remain external inputs. The repository does not commit CSV, NPZ, PT, or large tensor artifacts.
+The local directory contains multiple `*-level10_processed.csv` files, including `sz000001`, `sz000002`, `sz002415`, `sz000858`, `sz300147`, and `sz300750`. They are inputs, not repository artifacts. This repo does not commit CSV, NPZ, PT, or large tensor files.
 
 ## Reproducibility Boundary
 
-This PoW currently reproduces field mapping, label generation, window construction, chronological splitting, and metadata recording. It does not reproduce the external dataset itself, because the data stays outside git. Before running experiments, the external dataset path must exist locally.
+The repo reproduces field mapping, label generation, window construction, boundary-purged chronological splitting, baseline execution, and metadata recording. It does not reproduce the external dataset itself. A local copy of the external dataset is required before running the scripts.
