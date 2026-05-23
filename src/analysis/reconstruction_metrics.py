@@ -9,6 +9,8 @@ import numpy as np
 FEATURE_DIM = 40
 WINDOW_LEN = 100
 EPS = 1e-12
+IMBALANCE_EPS_THRESHOLD = 1e-6
+IMBALANCE_VALID_RATIO_THRESHOLD = 0.95
 
 BEST_BID_PRICE1_IDX = 9
 BEST_ASK_PRICE1_IDX = 10
@@ -53,6 +55,32 @@ def _level_indices(level: int) -> Dict[str, int]:
 
 def _imbalance(bid: np.ndarray, ask: np.ndarray) -> np.ndarray:
     return bid / (bid + ask + EPS)
+
+
+def _imbalance_validity_masks(
+    true_bid: np.ndarray,
+    true_ask: np.ndarray,
+    pred_bid: np.ndarray,
+    pred_ask: np.ndarray,
+    eps_threshold: float = IMBALANCE_EPS_THRESHOLD,
+) -> Dict[str, np.ndarray]:
+    """Build validity masks for imbalance diagnostics."""
+    nonnegative = (true_bid >= 0.0) & (true_ask >= 0.0) & (pred_bid >= 0.0) & (pred_ask >= 0.0)
+    denom_true = true_bid + true_ask
+    denom_pred = pred_bid + pred_ask
+    denom_small = (denom_true <= eps_threshold) | (denom_pred <= eps_threshold)
+    valid = nonnegative & (~denom_small)
+    return {
+        "nonnegative": nonnegative,
+        "denom_small": denom_small,
+        "valid": valid,
+    }
+
+
+def _masked_mae(values: np.ndarray, mask: np.ndarray) -> float:
+    if not np.any(mask):
+        return float("nan")
+    return _to_float(np.mean(np.abs(values[mask])))
 
 
 def _top5_volume_indices() -> Dict[str, List[int]]:
@@ -239,13 +267,68 @@ def compute_derived_lob_errors(
     true_top5_imb = _imbalance(true_top5_bid, true_top5_ask)
     pred_top5_imb = _imbalance(pred_top5_bid, pred_top5_ask)
 
+    top1_masks = _imbalance_validity_masks(
+        true_bid=true_bid_vol1,
+        true_ask=true_ask_vol1,
+        pred_bid=pred_bid_vol1,
+        pred_ask=pred_ask_vol1,
+    )
+    top5_masks = _imbalance_validity_masks(
+        true_bid=true_top5_bid,
+        true_ask=true_top5_ask,
+        pred_bid=pred_top5_bid,
+        pred_ask=pred_top5_ask,
+    )
+
+    top1_nonnegative_ratio = _to_float(np.mean(top1_masks["nonnegative"]))
+    top1_denom_small_ratio = _to_float(np.mean(top1_masks["denom_small"]))
+    top1_valid_ratio = _to_float(np.mean(top1_masks["valid"]))
+    top1_imbalance_valid = bool(top1_valid_ratio >= IMBALANCE_VALID_RATIO_THRESHOLD)
+    top1_imbalance_mae = (
+        _masked_mae(pred_top1_imb - true_top1_imb, top1_masks["valid"]) if top1_imbalance_valid else float("nan")
+    )
+
+    top5_nonnegative_ratio = _to_float(np.mean(top5_masks["nonnegative"]))
+    top5_denom_small_ratio = _to_float(np.mean(top5_masks["denom_small"]))
+    top5_valid_ratio = _to_float(np.mean(top5_masks["valid"]))
+    top5_imbalance_valid = bool(top5_valid_ratio >= IMBALANCE_VALID_RATIO_THRESHOLD)
+    top5_imbalance_mae = (
+        _masked_mae(pred_top5_imb - true_top5_imb, top5_masks["valid"]) if top5_imbalance_valid else float("nan")
+    )
+
+    top1_true_sum = true_bid_vol1 + true_ask_vol1
+    top1_pred_sum = pred_bid_vol1 + pred_ask_vol1
+    top1_true_diff = true_bid_vol1 - true_ask_vol1
+    top1_pred_diff = pred_bid_vol1 - pred_ask_vol1
+
+    top5_true_sum = true_top5_bid + true_top5_ask
+    top5_pred_sum = pred_top5_bid + pred_top5_ask
+    top5_true_diff = true_top5_bid - true_top5_ask
+    top5_pred_diff = pred_top5_bid - pred_top5_ask
+
     return {
         "midprice_mae": _to_float(np.mean(np.abs(pred_mid - true_mid))),
         "spread_mae": _to_float(np.mean(np.abs(pred_spread - true_spread))),
         "best_bid_mae": _to_float(np.mean(np.abs(pred_bid1 - true_bid1))),
         "best_ask_mae": _to_float(np.mean(np.abs(pred_ask1 - true_ask1))),
-        "top1_imbalance_mae": _to_float(np.mean(np.abs(pred_top1_imb - true_top1_imb))),
-        "top5_imbalance_mae": _to_float(np.mean(np.abs(pred_top5_imb - true_top5_imb))),
+        "volume_nonnegative_ratio": _to_float((top1_nonnegative_ratio + top5_nonnegative_ratio) / 2.0),
+        "imbalance_denominator_small_ratio": _to_float((top1_denom_small_ratio + top5_denom_small_ratio) / 2.0),
+        "imbalance_valid_ratio": _to_float((top1_valid_ratio + top5_valid_ratio) / 2.0),
+        "imbalance_valid": bool(top1_imbalance_valid and top5_imbalance_valid),
+        "top1_volume_nonnegative_ratio": top1_nonnegative_ratio,
+        "top1_imbalance_denominator_small_ratio": top1_denom_small_ratio,
+        "top1_imbalance_valid_ratio": top1_valid_ratio,
+        "top1_imbalance_valid": top1_imbalance_valid,
+        "top1_imbalance_mae": top1_imbalance_mae,
+        "top5_volume_nonnegative_ratio": top5_nonnegative_ratio,
+        "top5_imbalance_denominator_small_ratio": top5_denom_small_ratio,
+        "top5_imbalance_valid_ratio": top5_valid_ratio,
+        "top5_imbalance_valid": top5_imbalance_valid,
+        "top5_imbalance_mae": top5_imbalance_mae,
+        "top1_volume_sum_mae": _to_float(np.mean(np.abs(top1_pred_sum - top1_true_sum))),
+        "top5_volume_sum_mae": _to_float(np.mean(np.abs(top5_pred_sum - top5_true_sum))),
+        "top1_volume_diff_mae": _to_float(np.mean(np.abs(top1_pred_diff - top1_true_diff))),
+        "top5_volume_diff_mae": _to_float(np.mean(np.abs(top5_pred_diff - top5_true_diff))),
     }
 
 
@@ -292,6 +375,65 @@ def compute_per_sample_errors(
     true_top1_imb = _imbalance(true_bid_vol1, true_ask_vol1)
     pred_top1_imb = _imbalance(pred_bid_vol1, pred_ask_vol1)
 
+    top5_idx = _top5_volume_indices()
+    true_top5_bid = np.sum(X_true_original[:, :, top5_idx["bid"]], axis=2)
+    true_top5_ask = np.sum(X_true_original[:, :, top5_idx["ask"]], axis=2)
+    pred_top5_bid = np.sum(X_hat_original[:, :, top5_idx["bid"]], axis=2)
+    pred_top5_ask = np.sum(X_hat_original[:, :, top5_idx["ask"]], axis=2)
+
+    true_top5_imb = _imbalance(true_top5_bid, true_top5_ask)
+    pred_top5_imb = _imbalance(pred_top5_bid, pred_top5_ask)
+
+    top1_masks = _imbalance_validity_masks(
+        true_bid=true_bid_vol1,
+        true_ask=true_ask_vol1,
+        pred_bid=pred_bid_vol1,
+        pred_ask=pred_ask_vol1,
+    )
+    top5_masks = _imbalance_validity_masks(
+        true_bid=true_top5_bid,
+        true_ask=true_top5_ask,
+        pred_bid=pred_top5_bid,
+        pred_ask=pred_top5_ask,
+    )
+
+    top1_valid_ratio_per_sample = np.mean(top1_masks["valid"], axis=1)
+    top5_valid_ratio_per_sample = np.mean(top5_masks["valid"], axis=1)
+
+    top1_diff = np.abs(pred_top1_imb - true_top1_imb)
+    top5_diff = np.abs(pred_top5_imb - true_top5_imb)
+    top1_masked_sum = np.sum(np.where(top1_masks["valid"], top1_diff, 0.0), axis=1)
+    top5_masked_sum = np.sum(np.where(top5_masks["valid"], top5_diff, 0.0), axis=1)
+    top1_mask_count = np.sum(top1_masks["valid"], axis=1)
+    top5_mask_count = np.sum(top5_masks["valid"], axis=1)
+    top1_imbalance_mae = np.divide(
+        top1_masked_sum,
+        top1_mask_count,
+        out=np.full_like(top1_masked_sum, np.nan, dtype=np.float64),
+        where=top1_mask_count > 0,
+    )
+    top5_imbalance_mae = np.divide(
+        top5_masked_sum,
+        top5_mask_count,
+        out=np.full_like(top5_masked_sum, np.nan, dtype=np.float64),
+        where=top5_mask_count > 0,
+    )
+
+    top1_valid_gate = top1_valid_ratio_per_sample >= IMBALANCE_VALID_RATIO_THRESHOLD
+    top5_valid_gate = top5_valid_ratio_per_sample >= IMBALANCE_VALID_RATIO_THRESHOLD
+    top1_imbalance_mae = np.where(top1_valid_gate, top1_imbalance_mae, np.nan)
+    top5_imbalance_mae = np.where(top5_valid_gate, top5_imbalance_mae, np.nan)
+
+    top1_true_sum = true_bid_vol1 + true_ask_vol1
+    top1_pred_sum = pred_bid_vol1 + pred_ask_vol1
+    top1_true_diff = true_bid_vol1 - true_ask_vol1
+    top1_pred_diff = pred_bid_vol1 - pred_ask_vol1
+
+    top5_true_sum = true_top5_bid + true_top5_ask
+    top5_pred_sum = pred_top5_bid + pred_top5_ask
+    top5_true_diff = true_top5_bid - true_top5_ask
+    top5_pred_diff = pred_top5_bid - pred_top5_ask
+
     return {
         "normalized_mse": normalized_mse.astype(np.float64),
         "normalized_mae": normalized_mae.astype(np.float64),
@@ -299,7 +441,16 @@ def compute_per_sample_errors(
         "last_step_mse": last_step_mse.astype(np.float64),
         "midprice_mae": np.mean(np.abs(pred_mid - true_mid), axis=1).astype(np.float64),
         "spread_mae": np.mean(np.abs(pred_spread - true_spread), axis=1).astype(np.float64),
-        "top1_imbalance_mae": np.mean(np.abs(pred_top1_imb - true_top1_imb), axis=1).astype(np.float64),
+        "top1_imbalance_mae": top1_imbalance_mae.astype(np.float64),
+        "top5_imbalance_mae": top5_imbalance_mae.astype(np.float64),
+        "top1_imbalance_valid": top1_valid_gate.astype(bool),
+        "top5_imbalance_valid": top5_valid_gate.astype(bool),
+        "top1_imbalance_valid_ratio": top1_valid_ratio_per_sample.astype(np.float64),
+        "top5_imbalance_valid_ratio": top5_valid_ratio_per_sample.astype(np.float64),
+        "top1_volume_sum_mae": np.mean(np.abs(top1_pred_sum - top1_true_sum), axis=1).astype(np.float64),
+        "top5_volume_sum_mae": np.mean(np.abs(top5_pred_sum - top5_true_sum), axis=1).astype(np.float64),
+        "top1_volume_diff_mae": np.mean(np.abs(top1_pred_diff - top1_true_diff), axis=1).astype(np.float64),
+        "top5_volume_diff_mae": np.mean(np.abs(top5_pred_diff - top5_true_diff), axis=1).astype(np.float64),
     }
 
 

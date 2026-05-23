@@ -802,10 +802,29 @@ def main() -> int:
     ]
     if not best_derived.empty:
         d = best_derived.iloc[0]
+        top1_valid = bool(d.get("top1_imbalance_valid", False))
+        top5_valid = bool(d.get("top5_imbalance_valid", False))
         lines.append(
             f"- derived MAE (best model): midprice={float(d['midprice_mae']):.6f}, "
-            f"spread={float(d['spread_mae']):.6f}, top1_imbalance={float(d['top1_imbalance_mae']):.6f}"
+            f"spread={float(d['spread_mae']):.6f}, "
+            f"top1_volume_sum={float(d['top1_volume_sum_mae']):.6f}, "
+            f"top5_volume_sum={float(d['top5_volume_sum_mae']):.6f}, "
+            f"top1_volume_diff={float(d['top1_volume_diff_mae']):.6f}, "
+            f"top5_volume_diff={float(d['top5_volume_diff_mae']):.6f}"
         )
+        lines.append(
+            f"- imbalance validity (best model): top1_valid={top1_valid}, top5_valid={top5_valid}, "
+            f"top1_valid_ratio={float(d['top1_imbalance_valid_ratio']):.4f}, "
+            f"top5_valid_ratio={float(d['top5_imbalance_valid_ratio']):.4f}"
+        )
+        if top1_valid:
+            lines.append(f"- top1_imbalance_mae(valid-only)={float(d['top1_imbalance_mae']):.6f}")
+        else:
+            lines.append("- top1_imbalance_mae(valid-only)=null (valid ratio below threshold)")
+        if top5_valid:
+            lines.append(f"- top5_imbalance_mae(valid-only)={float(d['top5_imbalance_mae']):.6f}")
+        else:
+            lines.append("- top5_imbalance_mae(valid-only)=null (valid ratio below threshold)")
 
     lines.append("")
     lines.append("## Scope Guard")
@@ -813,6 +832,8 @@ def main() -> int:
     lines.append("- Step 6 does not train prediction heads.")
     lines.append("- Step 6 does not run reconstruction-prediction alignment.")
     lines.append("- Step 7 will use per_sample_reconstruction_errors.csv for alignment analysis.")
+    lines.append("- Imbalance metrics are reported only when non-negative volume and denominator-validity checks pass.")
+    lines.append("- When imbalance validity is weak, volume-sum and volume-difference diagnostics are preferred.")
 
     (output_dir / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
