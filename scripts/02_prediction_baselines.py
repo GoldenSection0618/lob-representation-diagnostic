@@ -404,6 +404,13 @@ def main() -> int:
         f"mcc={best_row['mcc']:.6f}, log_loss={best_row['log_loss']:.6f}"
     )
     lines.append("")
+    lines.append("## Probability Quality Warning")
+    lines.append(
+        f"- {best_model} has the best test macro-F1, but its test log_loss is high "
+        f"({best_row['log_loss']:.6f}). This suggests poor probability calibration or overconfident errors."
+    )
+    lines.append("- It should not be treated as the best calibrated predictor.")
+    lines.append("")
     lines.append("## Majority Baseline Comparison (Test)")
     for model in selected_models:
         if model == "majority":
@@ -417,15 +424,40 @@ def main() -> int:
         )
 
     lines.append("")
-    lines.append("## Neutral Collapse Check")
+    lines.append("## Class-Coverage and Collapse Check")
+    min_class_ratio = 0.02
     for model in selected_models:
         dist = pred_dist_report["predicted_distribution"][model]["test"]
         total = sum(dist.values())
         neutral_ratio = dist.get("1", 0) / total if total > 0 else 0.0
-        collapse = neutral_ratio > 0.90
+        missing_classes = [c for c, count in dist.items() if count == 0]
+        low_coverage_classes = [
+            c for c, count in dist.items() if total > 0 and (count / total) < min_class_ratio
+        ]
+        directional_row = metrics_df[(metrics_df["model"] == model) & (metrics_df["split"] == "test")].iloc[0]
+        directional_collapse = (
+            (directional_row["non_neutral_recall"] is not None and directional_row["non_neutral_recall"] < 0.2)
+            or (directional_row["up_down_macro_f1"] is not None and directional_row["up_down_macro_f1"] < 0.2)
+        )
+        class_name = {str(k): v for k, v in CLASS_NAMES.items()}
+        missing_named = [class_name.get(c, c) for c in missing_classes]
+        low_cov_named = [class_name.get(c, c) for c in low_coverage_classes]
+        dist_text = f"down={dist.get('0', 0)}, neutral={dist.get('1', 0)}, up={dist.get('2', 0)}"
+        risk_notes = []
+        if neutral_ratio > 0.90:
+            risk_notes.append("neutral collapse risk")
+        if missing_named:
+            risk_notes.append(f"missing predicted classes: {', '.join(missing_named)}")
+        if low_cov_named:
+            risk_notes.append(f"low-coverage classes(<{min_class_ratio:.0%}): {', '.join(low_cov_named)}")
+        if directional_collapse:
+            risk_notes.append("directional collapse risk")
+        if not risk_notes:
+            risk_notes.append("no severe class-collapse signal")
         lines.append(
             f"- {model}: neutral prediction ratio={neutral_ratio:.4f}; "
-            f"{'collapse risk' if collapse else 'no severe neutral collapse'}"
+            f"predicted distribution: {dist_text}; "
+            f"{'; '.join(risk_notes)}"
         )
 
     lines.append("")
