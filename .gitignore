@@ -2,6 +2,7 @@
 /dataset/
 /datasets/
 *.csv
+!results/step5_prediction_baselines/metrics.csv
 data/raw/
 data/processed/
 data/external/
