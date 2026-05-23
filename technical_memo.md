@@ -39,7 +39,24 @@ For selection policy, macro-F1 is the primary metric for this imbalanced directi
 
 ## Step 6 Reconstruction Snapshot
 
-Step 6 reconstruction-only baselines are also being rerun under the stride-4 main protocol. Step 6 will keep `model_variant` as the canonical reconstruction variant key and will continue exporting LOBench-compatible reconstruction metrics after rerun.
+Step 6 completed reconstruction-only baselines on the same stride-4 locked split.
+
+| Model | latent_dim | Test Normalized MSE | Test Normalized MAE | Test Original MAE | Relative MSE vs Last Snapshot |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| pca | 128 | 0.1838 | 0.1871 | 0.1267 | 0.1003 |
+| pca | 32 | 0.4245 | 0.3093 | 0.2133 | 0.2317 |
+| mlp_ae | 64 | 0.4251 | 0.3736 | 0.2424 | 0.2320 |
+| last_snapshot_repeat | 40 | 1.8321 | 0.4410 | 0.2872 | 1.0000 |
+| train_mean_window | - | 2.2013 | 0.9195 | 0.5141 | 1.2015 |
+
+Observed Step 6 pattern:
+
+- PCA dominates reconstruction quality across tested latent dimensions.
+- Both best PCA and best MLP-AE improve over `last_snapshot_repeat` on normalized MSE.
+- Step 6 artifacts use `model_variant` as the canonical variant key, while keeping `model` (family) and `latent_dim` (numeric compression dimension) as separate fields.
+- Step 6 exports `lobench_compatible_reconstruction_metrics.csv`; on test, `pca@128` is also best by LOBench-compatible weighted MSE (`0.2917`).
+- Imbalance MAE is validity-gated; top1/top5 imbalance validity remains below threshold for the best model, so Step 7 should prefer volume-sum and volume-difference diagnostics.
+- `original_mae` / `original_rmse` are measured in Step 3 input feature space after inverse-transforming the Step 6 scaler, not in raw exchange order-flow scale.
 
 ## Next Comparison
 

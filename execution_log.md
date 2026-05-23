@@ -534,3 +534,46 @@ Validation checks:
 - `per_sample_predictions.csv` contains val/test rows for all three prediction models.
 - `direction_correct_non_neutral` is null for true neutral rows and non-null for true down/up rows.
 - Step 5 remains prediction-only; no reconstruction models are used.
+
+## Step 6 Rerun: Reconstruction Baselines on sample_stride=4
+
+Command:
+
+```bash
+mamba run -n lob python scripts/03_reconstruction_baselines.py \
+  --subset-dir data/processed/minimal_subset \
+  --output-dir results/step6_reconstruction_baselines \
+  --figures-dir figures/step6_reconstruction_baselines \
+  --artifact-dir artifacts/step6_reconstruction_baselines \
+  --seed 42 \
+  --models train_mean_window,last_snapshot_repeat,pca,mlp_ae \
+  --pca-latent-dims 8,16,32,64,128 \
+  --mlp-latent-dims 16,32,64 \
+  --max-epochs 100 \
+  --batch-size 256 \
+  --device auto
+```
+
+Split sizes:
+
+- train: `5600`
+- val: `1200`
+- test: `1152`
+
+Best test reconstruction:
+
+- best by normalized MSE: `pca@128`
+- `normalized_mse=0.183824`
+- `normalized_mae=0.187050`
+- `original_mae=0.126703`
+- `relative_mse_vs_last_snapshot=0.100333`
+- best LOBench-compatible weighted MSE: `pca@128` (`weighted_mse_loss=0.291670`, `all_loss=1.206065`)
+
+Validation checks:
+
+- `metrics.csv`, `rate_distortion.csv`, `derived_lob_errors.csv`, and `per_sample_reconstruction_errors.csv` were regenerated.
+- `per_sample_reconstruction_errors.csv` has `79520` rows, equal to `7952` samples x `10` reconstruction variants.
+- `model_variant` remains the canonical reconstruction variant key.
+- `run_config.json` includes `imbalance_gate`, `metric_space_note`, Step 4 protocol note, and Step 3 metadata summary.
+- Step 6 remains reconstruction-only and does not train prediction heads.
+- No `artifacts/` files were staged.

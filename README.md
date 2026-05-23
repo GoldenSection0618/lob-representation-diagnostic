@@ -43,7 +43,13 @@ Artifacts from Step 5 live under:
 - `results/step5_prediction_baselines/`
 - `figures/step5_prediction_baselines/`
 
-Step 6 reconstruction-only baselines are also being rerun under the stride-4 main protocol. Step 7 alignment has not been run yet.
+Step 6 reconstruction-only test snapshot:
+
+- Best test normalized-MSE model: `pca@128` (`normalized_mse=0.1838`, `normalized_mae=0.1871`, `original_mae=0.1267`)
+- Strong compression-constrained point (`latent_dim<=40`): `pca@32` (`normalized_mse=0.4245`)
+- Both best `pca` and best `mlp_ae` variants beat `last_snapshot_repeat` on test normalized-MSE
+- LOBench-compatible reconstruction metrics are exported in `lobench_compatible_reconstruction_metrics.csv`; on test, `pca@128` is also best by weighted MSE.
+- Step 7 alignment has not been run yet.
 
 Artifacts from Step 6 live under:
 

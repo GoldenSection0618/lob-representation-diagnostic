@@ -1,0 +1,306 @@
+{
+  "latents_saved": false,
+  "save_latents_flag": false,
+  "entries": [
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "train_mean_window",
+      "latent_dim": null,
+      "split": "train",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "train_mean_window",
+      "latent_dim": null,
+      "split": "val",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "train_mean_window",
+      "latent_dim": null,
+      "split": "test",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "last_snapshot_repeat",
+      "latent_dim": 40,
+      "split": "train",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "last_snapshot_repeat",
+      "latent_dim": 40,
+      "split": "val",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "last_snapshot_repeat",
+      "latent_dim": 40,
+      "split": "test",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "pca",
+      "latent_dim": 8,
+      "split": "train",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "pca",
+      "latent_dim": 8,
+      "split": "val",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "pca",
+      "latent_dim": 8,
+      "split": "test",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "pca",
+      "latent_dim": 16,
+      "split": "train",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "pca",
+      "latent_dim": 16,
+      "split": "val",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "pca",
+      "latent_dim": 16,
+      "split": "test",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "pca",
+      "latent_dim": 32,
+      "split": "train",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "pca",
+      "latent_dim": 32,
+      "split": "val",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "pca",
+      "latent_dim": 32,
+      "split": "test",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "pca",
+      "latent_dim": 64,
+      "split": "train",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "pca",
+      "latent_dim": 64,
+      "split": "val",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "pca",
+      "latent_dim": 64,
+      "split": "test",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "pca",
+      "latent_dim": 128,
+      "split": "train",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "pca",
+      "latent_dim": 128,
+      "split": "val",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "pca",
+      "latent_dim": 128,
+      "split": "test",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "mlp_ae",
+      "latent_dim": 16,
+      "split": "train",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "mlp_ae",
+      "latent_dim": 16,
+      "split": "val",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "mlp_ae",
+      "latent_dim": 16,
+      "split": "test",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "mlp_ae",
+      "latent_dim": 32,
+      "split": "train",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "mlp_ae",
+      "latent_dim": 32,
+      "split": "val",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "mlp_ae",
+      "latent_dim": 32,
+      "split": "test",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "mlp_ae",
+      "latent_dim": 64,
+      "split": "train",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "mlp_ae",
+      "latent_dim": 64,
+      "split": "val",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    },
+    {
+      "latents_saved": false,
+      "save_latents_flag": false,
+      "model": "mlp_ae",
+      "latent_dim": 64,
+      "split": "test",
+      "latent_shape": null,
+      "artifact_path": null,
+      "committed": false
+    }
+  ]
+}

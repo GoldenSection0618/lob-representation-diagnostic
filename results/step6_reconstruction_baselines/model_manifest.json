@@ -1,0 +1,122 @@
+[
+  {
+    "model": "train_mean_window",
+    "model_variant": "train_mean_window",
+    "latent_dim": null,
+    "input_dim": 4000,
+    "compression_ratio": null,
+    "num_parameters": 0,
+    "scaler_fitted_on_train_only": true,
+    "train_seconds": 0.0,
+    "artifact_saved": false,
+    "artifact_path": null
+  },
+  {
+    "model": "last_snapshot_repeat",
+    "model_variant": "last_snapshot_repeat@40",
+    "latent_dim": 40,
+    "input_dim": 4000,
+    "compression_ratio": 100.0,
+    "num_parameters": 0,
+    "scaler_fitted_on_train_only": true,
+    "train_seconds": 0.0,
+    "artifact_saved": false,
+    "artifact_path": null
+  },
+  {
+    "model": "pca",
+    "model_variant": "pca@8",
+    "latent_dim": 8,
+    "input_dim": 4000,
+    "compression_ratio": 500.0,
+    "num_parameters": 32000,
+    "scaler_fitted_on_train_only": true,
+    "train_seconds": 0.13328267200267874,
+    "artifact_saved": false,
+    "artifact_path": null
+  },
+  {
+    "model": "pca",
+    "model_variant": "pca@16",
+    "latent_dim": 16,
+    "input_dim": 4000,
+    "compression_ratio": 250.0,
+    "num_parameters": 64000,
+    "scaler_fitted_on_train_only": true,
+    "train_seconds": 0.11506920399551746,
+    "artifact_saved": false,
+    "artifact_path": null
+  },
+  {
+    "model": "pca",
+    "model_variant": "pca@32",
+    "latent_dim": 32,
+    "input_dim": 4000,
+    "compression_ratio": 125.0,
+    "num_parameters": 128000,
+    "scaler_fitted_on_train_only": true,
+    "train_seconds": 0.13599993899697438,
+    "artifact_saved": false,
+    "artifact_path": null
+  },
+  {
+    "model": "pca",
+    "model_variant": "pca@64",
+    "latent_dim": 64,
+    "input_dim": 4000,
+    "compression_ratio": 62.5,
+    "num_parameters": 256000,
+    "scaler_fitted_on_train_only": true,
+    "train_seconds": 0.17144004500005394,
+    "artifact_saved": false,
+    "artifact_path": null
+  },
+  {
+    "model": "pca",
+    "model_variant": "pca@128",
+    "latent_dim": 128,
+    "input_dim": 4000,
+    "compression_ratio": 31.25,
+    "num_parameters": 512000,
+    "scaler_fitted_on_train_only": true,
+    "train_seconds": 0.27692194799601566,
+    "artifact_saved": false,
+    "artifact_path": null
+  },
+  {
+    "model": "mlp_ae",
+    "model_variant": "mlp_ae@16",
+    "latent_dim": 16,
+    "input_dim": 4000,
+    "compression_ratio": 250.0,
+    "num_parameters": 4236464,
+    "scaler_fitted_on_train_only": true,
+    "train_seconds": 17.82927427800314,
+    "artifact_saved": false,
+    "artifact_path": null
+  },
+  {
+    "model": "mlp_ae",
+    "model_variant": "mlp_ae@32",
+    "latent_dim": 32,
+    "input_dim": 4000,
+    "compression_ratio": 125.0,
+    "num_parameters": 4240576,
+    "scaler_fitted_on_train_only": true,
+    "train_seconds": 27.339983559999382,
+    "artifact_saved": false,
+    "artifact_path": null
+  },
+  {
+    "model": "mlp_ae",
+    "model_variant": "mlp_ae@64",
+    "latent_dim": 64,
+    "input_dim": 4000,
+    "compression_ratio": 62.5,
+    "num_parameters": 4248800,
+    "scaler_fitted_on_train_only": true,
+    "train_seconds": 28.382609218999278,
+    "artifact_saved": false,
+    "artifact_path": null
+  }
+]
