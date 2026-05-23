@@ -206,18 +206,18 @@ def _plot_derived_lob_error_by_model(
     derived_df: pd.DataFrame, selected: List[Tuple[str, int | None]], fig_path: Path
 ) -> None:
     selected_labels = [_safe_label(m, d) for m, d in selected]
-    metrics = [
-        "midprice_mae",
-        "spread_mae",
+    price_metrics = ["midprice_mae", "spread_mae"]
+    volume_metrics = [
         "top1_volume_sum_mae",
         "top5_volume_sum_mae",
         "top1_volume_diff_mae",
         "top5_volume_diff_mae",
     ]
-    x = np.arange(len(metrics))
+    x_price = np.arange(len(price_metrics))
+    x_volume = np.arange(len(volume_metrics))
     width = 0.8 / max(len(selected_labels), 1)
 
-    plt.figure(figsize=(13, 5))
+    fig, axes = plt.subplots(2, 1, figsize=(13, 8), height_ratios=[1, 1.6])
     for i, (model, latent) in enumerate(selected):
         part = derived_df[
             (derived_df["split"] == "test")
@@ -225,19 +225,39 @@ def _plot_derived_lob_error_by_model(
             & (derived_df["latent_dim"].isna() if latent is None else derived_df["latent_dim"] == latent)
         ]
         if part.empty:
-            vals = [float("nan")] * len(metrics)
+            vals_price = [float("nan")] * len(price_metrics)
+            vals_volume = [float("nan")] * len(volume_metrics)
         else:
             r = part.iloc[0]
-            vals = [float(r[m]) for m in metrics]
-        plt.bar(x - 0.4 + width / 2 + i * width, vals, width=width, label=selected_labels[i])
+            vals_price = [float(r[m]) for m in price_metrics]
+            vals_volume = [float(r[m]) for m in volume_metrics]
 
-    plt.xticks(x, metrics, rotation=20, ha="right")
-    plt.ylabel("original MAE")
-    plt.title("Derived LOB Error by Model (Test)")
-    plt.legend(fontsize=8)
+        axes[0].bar(
+            x_price - 0.4 + width / 2 + i * width,
+            vals_price,
+            width=width,
+            label=selected_labels[i],
+        )
+        axes[1].bar(
+            x_volume - 0.4 + width / 2 + i * width,
+            vals_volume,
+            width=width,
+            label=selected_labels[i],
+        )
+
+    axes[0].set_xticks(x_price, price_metrics, rotation=15, ha="right")
+    axes[0].set_ylabel("original MAE")
+    axes[0].set_title("Derived LOB Error by Model (Test) - Price Metrics")
+    axes[0].legend(fontsize=8)
+
+    axes[1].set_xticks(x_volume, volume_metrics, rotation=15, ha="right")
+    axes[1].set_ylabel("original MAE")
+    axes[1].set_title("Derived LOB Error by Model (Test) - Volume Fallback Metrics")
+    axes[1].legend(fontsize=8)
+
     plt.tight_layout()
     plt.savefig(fig_path, dpi=150)
-    plt.close()
+    plt.close(fig)
 
 
 def _plot_level_heatmap(level_df: pd.DataFrame, best_model: str, best_latent: int | None, fig_path: Path) -> None:

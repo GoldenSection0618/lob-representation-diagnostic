@@ -392,3 +392,14 @@ I added explicit metric-space notes to avoid misreading `original_mae` / `origin
   - original space: Step 3 input feature space before Step 6 scaler (not raw order-flow scale)
 
 I also synchronized this note in Step 6 summary and technical memo text.
+
+## Step 6 Plot Readability Patch: Derived LOB Error Scale Separation
+
+I fixed `derived_lob_error_by_model.png` to avoid mixing price-scale and volume-scale metrics on one y-axis.
+
+Updated plotting logic:
+
+- Upper subplot: `midprice_mae`, `spread_mae`
+- Lower subplot: `top1_volume_sum_mae`, `top5_volume_sum_mae`, `top1_volume_diff_mae`, `top5_volume_diff_mae`
+
+This is a visualization-only patch; it does not change Step 6 reconstruction metrics.
