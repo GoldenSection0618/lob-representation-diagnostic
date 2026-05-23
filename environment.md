@@ -1,68 +1,60 @@
 # Environment
 
-## System
+This repository runs locally at `~/lob-representation-diagnostic`. The upstream LOBench checkout lives at `~/LOBench`. They are sibling directories. I treat the upstream repo as read-only reference material for data contracts, fields, and label logic; this PoW repo contains only my own code and notes.
 
-- PoW repository path: `~/lob-representation-diagnostic`
-- Upstream reference path: `~/LOBench`
-- Relationship: sibling directories under `~/`; upstream is read-only reference for this PoW.
+## Runtime
 
-## Python
+- Conda environment: `lob`
+- Python scripts should run through `mamba run -n lob ...`.
+- Dependency changes should go through `mamba`, not direct `pip install` or direct `conda install`.
+- Step 2/3 covered data contract inspection and subset construction. No full model training has been run yet.
 
-- Runtime environment: conda environment `lob`.
-- All Python programs for this project must run inside `lob`.
-- Any environment/package change must be executed via `mamba`.
-- Step 2 scope: inspection + notes only; no full training execution.
+Core dependencies:
 
-## Core Dependencies
+- `numpy`
+- `pandas`
+- `scikit-learn`
+- `matplotlib`
+- `pyyaml`
+- `tqdm`
 
-- numpy
-- pandas
-- scikit-learn
-- matplotlib
-- pyyaml
-- tqdm
+Training will later require:
 
-## Optional Dependencies
+- `torch`
+- `lightning` or `pytorch-lightning`, mainly for compatibility with the upstream datamodule style. These are not hard requirements for the current data preparation stage.
 
-- torch (required later for Step 4/5 model training, not required for Step 2 note updates)
-- lightning / pytorch-lightning (upstream datamodule usage; optional for current Step 2)
+## Upstream Reference
 
-## External Repositories
+The inspected local LOBench commit is `c8fe9e7`.
 
-- LOBench local path: `~/LOBench`
-- LOBench commit hash (inspected): `c8fe9e7`
-- Inspected files:
-  - `data/data_ashare.py`
-  - `data/data_processing.py`
-  - `data/data_prepare.py`
-  - `data/data_sampling.py`
-  - `config_template.json`
-  - `README.md`
+Files inspected:
+
+- `~/LOBench/data/data_ashare.py`
+- `~/LOBench/data/data_processing.py`
+- `~/LOBench/data/data_prepare.py`
+- `~/LOBench/data/data_sampling.py`
+- `~/LOBench/config_template.json`
+- `~/LOBench/README.md`
+
+The upstream repo has multiple data entry points. `data_ashare.py` is closer to the A-share main path. `data_processing.py` covers processed/simulation-style data. `data_prepare.py` mainly splits already materialized tensors. That difference matters for labels and split behavior, so I do not copy one file blindly as the project contract.
 
 ## Data Paths
 
-These paths are expected locally but must not be committed in this PoW repo:
+These paths may exist locally, but must not be committed:
 
-- PoW local data (gitignored):
-  - `data/raw/`
-  - `data/processed/`
-  - `data/external/`
-- Upstream reference paths (read-only in Step 2):
-  - `~/LOBench/dataset/real_data/`
-  - `~/LOBench/dataset/train_data/`
-  - `~/LOBench/dataset/simu_data/`
+- `data/raw/`
+- `data/processed/`
+- `data/external/`
+- `~/LOBench/dataset/real_data/`
+- `~/LOBench/dataset/train_data/`
+- `~/LOBench/dataset/simu_data/`
 
-## External Dataset
+The external processed dataset comes from Hugging Face dataset `mythezone/LOBench-A-share-processed`. Local path:
 
-External dataset:
-- Hugging Face dataset: `mythezone/LOBench-A-share-processed`
-- Local path: `~/datasets/LOBench-A-share-processed`
-- Role: external processed A-share LOB data
-- Storage policy: not committed to this PoW repository
+- `~/datasets/LOBench-A-share-processed`
 
-## Reproducibility Notes
+I verified that this local directory contains multiple `*-level10_processed.csv` files, including `sz000001`, `sz000002`, `sz002415`, `sz000858`, `sz300147`, and `sz300750`. These files remain external inputs. The repository does not commit CSV, NPZ, PT, or large tensor artifacts.
 
-- Step 2 outputs are documentation-only contract updates (`data_note.md`, `environment.md`, `execution_log.md`).
-- No upstream source code is copied into this repository.
-- No real data, large tensors, `.npz`, `.pt`, or `.csv` outputs are committed.
-- Environment operation rule: do not modify Python environment with `pip install` or direct `conda install`; use `mamba` in `lob`.
+## Reproducibility Boundary
+
+This PoW currently reproduces field mapping, label generation, window construction, chronological splitting, and metadata recording. It does not reproduce the external dataset itself, because the data stays outside git. Before running experiments, the external dataset path must exist locally.

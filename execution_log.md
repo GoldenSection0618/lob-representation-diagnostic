@@ -1,46 +1,32 @@
 # PoW Execution Log
 
-## Step 1: Repository Initialization and Scope Locking
+This log records decisions and reproducibility-relevant facts. It is not a full activity diary.
 
-### Objective
+## Step 1: Lock the Boundary First
 
-Initialize an independent PoW repository and lock the research scope before touching upstream code or data.
+I initialized an independent PoW repository at `~/lob-representation-diagnostic`.
 
-### Scope Decision
+The repository is a diagnostic experiment, not a LOBench fork and not a full reproduction. The core question is whether better LOB reconstruction reliably transfers into better mid-price trend prediction.
 
-- Project type: independent diagnostic PoW repo.
-- Not a fork of LOBench.
-- Not a full reproduction repo.
-- Core question: Does better LOB reconstruction imply better downstream prediction?
-- Main output: GitHub repo + technical memo.
+Initial project files and directories:
 
-### Repository Path
+- `README.md`
+- `environment.md`
+- `data_note.md`
+- `technical_memo.md`
+- `configs/`
+- `src/`
+- `scripts/`
+- `results/`
+- `figures/`
 
-~/lob-representation-diagnostic
+The next move was to inspect the LOBench / SimLOB-style data pipeline and lock the dataset format, loader entry points, split behavior, label definition, and minimal subset requirements.
 
-### Initialized Components
+## Step 2: Inspect the Upstream Data Pipeline
 
-- README.md
-- environment.md
-- data_note.md
-- technical_memo.md
-- configs/
-- src/
-- scripts/
-- results/
-- figures/
+I inspected the local `~/LOBench` checkout at commit `c8fe9e7`.
 
-### Next Step
-
-Step 2: Inspect LOBench / SimLOB data pipeline and identify dataset format, loader entry, split logic, label definition, and minimal subset requirements.
-
-## Step 2: LOBench / SimLOB Data Pipeline Inspection
-
-### Objective
-
-Inspect upstream data pipeline definitions and lock a verifiable data contract for this independent PoW repository without copying upstream code.
-
-### Inspected Files
+Files reviewed:
 
 - `~/LOBench/data/data_ashare.py`
 - `~/LOBench/data/data_processing.py`
@@ -49,101 +35,83 @@ Inspect upstream data pipeline definitions and lock a verifiable data contract f
 - `~/LOBench/config_template.json`
 - `~/LOBench/README.md`
 
-### Findings
+Findings that drive the PoW design:
 
-- Upstream reference repository is available at `~/LOBench` (commit `c8fe9e7`).
-- A-share / LOB loading entry points were identified:
-  - `data/data_ashare.py` for A-share dataset classes
-  - `data/data_processing.py` for simulation/processed dataset class
-  - `data/data_prepare.py` for dataloader creation and random split from `.pt`
-- Input formats used by inspected upstream pipeline are `CSV`, `NPZ`, and `PT`; HuggingFace is linked in README but not used as direct loader in inspected code.
-- `data_processing.py` defines a 10-level, 40-feature flattened LOB layout:
-  - prices: `bestBidPrice10..1 + bestAskPrice1..10`
-  - volumes: `bestBidVolume10..1 + bestAskVolume1..10`
-- Mid-price and spread in `data_processing.py`:
-  - `midPrice = (bestBidPrice1 + bestAskPrice1)/2`
-  - `spread = bestAskPrice1 - bestBidPrice1`
-- Trend labels in `data_processing.py` are 3-class with thresholded future rolling-mean gap and horizons `{1,3,5,7,10}`.
-- `data_ashare.py` contains a related but different trend rule (`{-1,0,1}` and relative `theta` threshold), so label conventions are not fully unified across upstream files.
-- Sample shape conventions were confirmed:
-  - canonical flattened sequence: `[T, 40]` (PoW primary contract)
-  - model-specific derived channel view in upstream VAE path: `[2, T, 20]`
-- Upstream split behavior is random-split oriented:
-  - `data_prepare.py`: 70/20/10 random split
-  - `data_processing.py` and `data_ashare.py` datamodules: 80/10/10 random split
-- PoW policy for this repo remains chronological split for the main experiment.
-- Local data availability update (2026-05-23): external processed A-share files are available under `~/datasets/LOBench-A-share-processed` (`*-level10_processed.csv`), and remain outside PoW git tracking.
+- The main A-share path is in `data_ashare.py`.
+- Processed/simulation-style logic is in `data_processing.py`.
+- `data_prepare.py` works on already saved tensors and random split; it is not a good main contract for this PoW.
+- The inspected upstream code uses `CSV`, `NPZ`, and `PT`. Hugging Face is a distribution path, not the direct runtime loader I observed.
+- The 40-feature LOB layout expands 10 levels of bid/ask prices and volumes.
+- `midPrice = (bestBidPrice1 + bestAskPrice1)/2`.
+- `spread = bestAskPrice1 - bestBidPrice1`.
+- `data_processing.py` builds three-class trend labels from a thresholded future rolling-mean gap, with horizons `{1,3,5,7,10}`.
+- `data_ashare.py` has another label convention using `{-1,0,1}` and a relative threshold, so I do not mix the two definitions.
+- Upstream defaults lean toward random split. This PoW uses chronological split for the main experiment.
 
-### Unresolved Uncertainties
+I also confirmed that local external processed A-share files exist under `~/datasets/LOBench-A-share-processed` as `*-level10_processed.csv`. The data remains outside git.
 
-- Whether processed LOBench files are fully available locally in a directly consumable format.
-- Which upstream naming convention should be canonical for PoW ingestion (`bestBidPrice*` vs `BidPrice*`).
-- Whether precomputed labels exist locally or must be regenerated during PoW preprocessing.
-- Whether Step 3 subset should use step=1 or step=4 window sampling.
+The main open points after Step 2 were field naming (`bestBidPrice*` vs `BidPrice*`), whether labels should be regenerated, and what sampling stride to use in Step 3. Step 3 converted those into an explicit code contract.
 
-### Next Step
+## Step 3: Build the Minimal Chronological Subset
 
-Step 3: implement minimal data inspection / subset construction script for chronological slicing and metadata export in the PoW repo.
+The goal was to run one clean data path: read one external processed CSV, map it into the canonical 40-feature layout, generate LOBench-style `trend5` labels, build `window=100` samples, and enforce a chronological `70/15/15` split.
 
-## Step 3: Build a Small Chronological Subset
-
-### Objective
-
-Build a minimal LOBench-style subset builder that reads one external processed CSV, applies canonical 40-feature contract and LOBench-style labels, constructs `window=100` samples, and performs strict chronological `70/15/15` split checks.
-
-### Files Modified
+Files touched:
 
 - `src/data/load_lobench.py`
 - `src/data/labeling.py`
 - `src/data/make_subset.py`
-- `src/data/checks.py` (new)
+- `src/data/checks.py`
 - `scripts/01_prepare_data.py`
 - `data_note.md`
 - `README.md`
 - `execution_log.md`
 
-### Commands Executed
+I ran a dry run first, then wrote outputs.
 
-- Dry run:
-  - `mamba run -n lob python scripts/01_prepare_data.py --input-csv ~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv --symbol sz000001 --output-dir data/processed/minimal_subset --window-len 100 --label-horizon 5 --threshold 0.0001 --split-ratio 70/15/15 --row-limit 50000 --max-samples 8000 --dry-run`
-- Output run:
-  - `mamba run -n lob python scripts/01_prepare_data.py --input-csv ~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv --symbol sz000001 --output-dir data/processed/minimal_subset --window-len 100 --label-horizon 5 --threshold 0.0001 --split-ratio 70/15/15 --row-limit 50000 --max-samples 8000`
+Dry run:
 
-### Input File
+```bash
+mamba run -n lob python scripts/01_prepare_data.py --input-csv ~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv --symbol sz000001 --output-dir data/processed/minimal_subset --window-len 100 --label-horizon 5 --threshold 0.0001 --split-ratio 70/15/15 --row-limit 50000 --max-samples 8000 --dry-run
+```
+
+Output run:
+
+```bash
+mamba run -n lob python scripts/01_prepare_data.py --input-csv ~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv --symbol sz000001 --output-dir data/processed/minimal_subset --window-len 100 --label-horizon 5 --threshold 0.0001 --split-ratio 70/15/15 --row-limit 50000 --max-samples 8000
+```
+
+Input file:
 
 - `~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv`
 
-### Output Path
+Output directory:
 
 - `data/processed/minimal_subset/`
 
-### Generated Metadata
+Metadata:
 
 - `data/processed/minimal_subset/metadata.json`
 
-### Check Results
+Final run facts:
 
-- `feature_contract_check`: passed
-- `label_contract_check`: passed
-- `window_alignment_check`: passed
-- `chronological_split_check`: passed
-- `output_safety_check`: passed
+- Raw rows used: `50000`
+- Usable rows after label trimming: `49990`
+- Final samples: `7802`
+- `X=(7802, 100, 40)`
+- `y=(7802,)`
+- Split sizes: `train=5600`, `val=1200`, `test=1002`
+- Train max label row: `5698`
+- Validation min label row: `5798`
+- Validation max label row: `6997`
+- Test min label row: `7097`
 
-Key run facts:
+Checks passed:
 
-- total raw rows used: `50000`
-- usable rows after label trimming: `49990`
-- final samples: `7802`
-- shape: `X=(7802, 100, 40)`, `y=(7802,)`
-- split sizes: `train=5600`, `val=1200`, `test=1002`
-- chronological ordering verified:
-  - `train max label_row = 5698 < val min label_row = 5798`
-  - `val max label_row = 6997 < test min label_row = 7097`
+- `feature_contract_check`
+- `label_contract_check`
+- `window_alignment_check`
+- `chronological_split_check`
+- `output_safety_check`
 
-### Step Completion
-
-Step 3 completed.
-
-### Next Step
-
-Step 4: implement reconstruction baselines (without changing Step 3 data contract).
+Step 3 is complete. Step 4 should implement reconstruction baselines while keeping this data contract unchanged.

@@ -1,76 +1,62 @@
-# LOB Representation Diagnostic Study
+# LOB Representation Diagnostic
 
-This is an independent PoW repository.
+This is an independent PoW repository. It is not a fork of LOBench, and it is not a full reproduction of LOBench or SimLOB.
 
-This is not a fork of LOBench.
+The question I want to answer is narrower and more useful: if a representation reconstructs the LOB with lower error, does that actually improve downstream mid-price trend prediction? If the answer is inconsistent, I want to know where the gap comes from: specific book levels, specific market regimes, or a mismatch between the reconstruction objective and the prediction task.
 
-This is not a full reproduction of LOBench or SimLOB.
-
-This project studies whether lower LOB reconstruction error reliably transfers to better downstream mid-price trend prediction.
-
-The goal is diagnostic analysis, not SOTA performance.
-
-## Research Question
-
-Does better LOB reconstruction imply better downstream prediction?
-
-## Project Scope
-
-This repository is an independent Proof-of-Work (PoW) repo for building a small-scale diagnostic benchmark.
-
-- LOBench / SimLOB are upstream references.
-- Upstream code is not copied as the main project.
-- The project uses LOBench-style data and task definitions as external references.
-- The repository focuses on controlled experiments, analysis scripts, diagnostic metrics, and technical memo.
+This project is not chasing SOTA and it is not a trading PnL study. The goal is to run controlled experiments and make the data split, labels, metrics, and failure cases explicit.
 
 ## What This Repo Does
 
-- Builds a small chronological subset from LOBench-style LOB data.
-- Trains simple controllable representation baselines.
-- Compares reconstruction metrics with downstream mid-price trend prediction.
-- Analyzes level-wise reconstruction error.
-- Analyzes regime-specific failure cases.
-- Optionally profiles latency, compression ratio, and efficiency trade-offs.
+- Builds a small chronological subset from external LOBench-style A-share data.
+- Locks a 10-level, 100-step, 40-feature input contract.
+- Trains simple and controllable reconstruction representation baselines.
+- Attaches downstream mid-price trend prediction heads to the same representations.
+- Compares reconstruction metrics against prediction metrics.
+- Breaks reconstruction error down by order book level.
+- Checks failure cases across market regimes such as spread, volatility, and trend strength.
+- Adds latency, compression, and efficiency profiling only when it helps explain the trade-off.
 
 ## What This Repo Does Not Claim
 
-- It does not claim SOTA.
+- It does not claim SOTA performance.
 - It does not fully reproduce LOBench or SimLOB.
-- It does not evaluate trading profitability.
-- It does not redistribute proprietary or private LOB data.
-- It does not generalize small-subset results to all market settings.
+- It does not evaluate real trading profitability.
+- It does not commit or redistribute external, proprietary, or private LOB data.
+- It does not generalize a small-subset result to every stock, market, or period.
 
-## Planned Steps
+## Current State
 
-- Step 1: Repository initialization and scope locking.
-- Step 2: Inspect LOBench / SimLOB data pipeline.
-- Step 3: Build a small chronological subset.
-- Step 4: Implement reconstruction baselines.
-- Step 5: Train downstream prediction heads.
-- Step 6: Analyze reconstruction-prediction alignment.
-- Step 7: Analyze level-wise and regime-specific failure cases.
-- Step 8: Profile efficiency trade-offs.
-- Step 9: Write final technical memo.
+Step 3 is complete. I built a minimal chronological subset from the external processed CSV for `sz000001`.
 
-## Repository Structure
+Key facts:
 
-- `configs/`: configuration files for reconstruction baselines and prediction head.
-- `src/data/`: data loading, subset construction, and label-related utilities.
-- `src/models/`: representation models and downstream prediction head modules.
+- Input file: `~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv`
+- Output directory: `data/processed/minimal_subset/`
+- Window length: `100`
+- Feature width: `40`
+- Label: `trend5`
+- Threshold: `0.0001`
+- Split: `70/15/15`
+- Final samples: `7802`
+- Shape: `X=(7802, 100, 40)`, `y=(7802,)`
+- Checks passed: feature contract, label contract, window alignment, chronological split, and output safety.
+
+Next step: Step 4, implement reconstruction baselines without changing the Step 3 data contract.
+
+## Repository Layout
+
+- `configs/`: experiment configs for reconstruction baselines and prediction heads.
+- `src/data/`: external data loading, field mapping, label generation, and subset construction.
+- `src/models/`: representation models and downstream prediction heads.
 - `src/losses/`: reconstruction objectives and weighted variants.
-- `src/analysis/`: diagnostic analysis modules.
-- `src/utils/`: shared utilities for metrics, seed control, and profiling.
-- `scripts/`: stage-by-stage runnable scripts.
-- `results/`: experiment outputs and result artifacts.
-- `figures/`: generated plots and visual diagnostics.
-- Root docs: environment/data notes, execution log, and technical memo.
+- `src/analysis/`: reconstruction-prediction alignment, level-wise error, and regime failure analysis.
+- `src/utils/`: metrics, seed control, profiling, and shared utilities.
+- `scripts/`: runnable stage-by-stage entry points.
+- `results/`: experiment outputs.
+- `figures/`: generated plots and diagnostics.
+- Root docs: environment notes, data contract, execution log, and technical memo.
 
-## Upstream References
+## External References
 
-- LOBench is used as an external reference.
-- SimLOB is used as a methodological reference.
-- This repo only stores original scripts, configs, notes, analysis code, and technical memo.
-
-## Current Status
-
-Step 3 chronological subset construction completed. Step 4 reconstruction baselines pending.
+LOBench and SimLOB are used as external references for data and methodology. I do not copy upstream code into this repository as the main project body. This repo stores only original scripts, configs, analysis code, notes, and memos.
