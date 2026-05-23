@@ -18,10 +18,10 @@ Core dependencies:
 - `pyyaml`
 - `tqdm`
 
-Training will later require:
+Training dependencies (installed in `lob`):
 
-- `torch`
-- `lightning` or `pytorch-lightning`, mainly for compatibility with the upstream datamodule style. These are not hard requirements for the current data preparation stage.
+- `torch==2.10.0`
+- `pytorch-lightning==2.6.1`
 
 ## Upstream Reference
 

@@ -4,3 +4,5 @@ scikit-learn
 matplotlib
 pyyaml
 tqdm
+torch==2.10.0
+pytorch-lightning==2.6.1
