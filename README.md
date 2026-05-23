@@ -56,7 +56,7 @@ Key facts:
 - Shape: `X=(7802, 100, 40)`, `y=(7802,)`
 - Checks passed: feature contract, label contract, window alignment, chronological split, and output safety.
 - Prediction-only models run: `majority`, `logistic_regression`, `mlp`
-- Best test model by macro-F1: `logistic_regression` (`macro_f1=0.3338`, `balanced_accuracy=0.3504`, `mcc=0.0250`)
+- Best test model by macro-F1: `logistic_regression` (`macro_f1=0.3338`, `balanced_accuracy=0.3504`, `mcc=0.0250`), but `log_loss` is high (`9.2487`), so probability quality is poor.
 - Step 5 outputs:
   - `results/step5_prediction_baselines/`
   - `figures/step5_prediction_baselines/`

@@ -29,7 +29,9 @@ No-purge chronological split is postponed and treated as future ablation work, n
 
 ## What I Plan to Compare
 
-The next immediate experimental step is prediction-only baseline evaluation under the locked boundary-purged chronological protocol. Reconstruction baselines come after that.
+Step 5 has completed prediction-only baseline evaluation under the locked boundary-purged chronological protocol. The next experimental step is to implement reconstruction baselines and measure whether reconstruction quality aligns with downstream prediction performance.
+
+The next comparison is between reconstruction baselines with different reconstruction quality, followed by prediction heads trained on their representations.
 
 The comparisons should answer a few concrete questions:
 
