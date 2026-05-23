@@ -31,7 +31,7 @@
     "compression_ratio": 500.0,
     "num_parameters": 32000,
     "scaler_fitted_on_train_only": true,
-    "train_seconds": 0.13328267200267874,
+    "train_seconds": 0.11720233199594077,
     "artifact_saved": false,
     "artifact_path": null
   },
@@ -43,7 +43,7 @@
     "compression_ratio": 250.0,
     "num_parameters": 64000,
     "scaler_fitted_on_train_only": true,
-    "train_seconds": 0.11506920399551746,
+    "train_seconds": 0.11755090599763207,
     "artifact_saved": false,
     "artifact_path": null
   },
@@ -55,7 +55,7 @@
     "compression_ratio": 125.0,
     "num_parameters": 128000,
     "scaler_fitted_on_train_only": true,
-    "train_seconds": 0.13599993899697438,
+    "train_seconds": 0.12952347900136374,
     "artifact_saved": false,
     "artifact_path": null
   },
@@ -67,7 +67,7 @@
     "compression_ratio": 62.5,
     "num_parameters": 256000,
     "scaler_fitted_on_train_only": true,
-    "train_seconds": 0.17144004500005394,
+    "train_seconds": 0.18628402099420782,
     "artifact_saved": false,
     "artifact_path": null
   },
@@ -79,7 +79,7 @@
     "compression_ratio": 31.25,
     "num_parameters": 512000,
     "scaler_fitted_on_train_only": true,
-    "train_seconds": 0.27692194799601566,
+    "train_seconds": 0.2674235299928114,
     "artifact_saved": false,
     "artifact_path": null
   },
@@ -91,7 +91,7 @@
     "compression_ratio": 250.0,
     "num_parameters": 4236464,
     "scaler_fitted_on_train_only": true,
-    "train_seconds": 17.82927427800314,
+    "train_seconds": 17.44229606499721,
     "artifact_saved": false,
     "artifact_path": null
   },
@@ -103,7 +103,7 @@
     "compression_ratio": 125.0,
     "num_parameters": 4240576,
     "scaler_fitted_on_train_only": true,
-    "train_seconds": 27.339983559999382,
+    "train_seconds": 28.28264448599657,
     "artifact_saved": false,
     "artifact_path": null
   },
@@ -115,7 +115,7 @@
     "compression_ratio": 62.5,
     "num_parameters": 4248800,
     "scaler_fitted_on_train_only": true,
-    "train_seconds": 28.382609218999278,
+    "train_seconds": 28.743409271002747,
     "artifact_saved": false,
     "artifact_path": null
   }

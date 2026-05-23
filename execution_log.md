@@ -588,3 +588,34 @@ Commits made for the main protocol revision:
 - `58c5c1e` - `step3: expose stride in metadata summary`
 - `67064d5` - `step5: rerun prediction baselines with sample_stride4`
 - `9e25234` - `step6: rerun reconstruction baselines with sample_stride4`
+
+## Step 6 Latent Artifact Refresh
+
+I refreshed Step 6 latent artifacts for the stride-4 main protocol.
+
+Command:
+
+```bash
+mamba run -n lob python scripts/03_reconstruction_baselines.py \
+  --subset-dir data/processed/minimal_subset \
+  --output-dir results/step6_reconstruction_baselines \
+  --figures-dir figures/step6_reconstruction_baselines \
+  --artifact-dir artifacts/step6_reconstruction_baselines \
+  --seed 42 \
+  --models train_mean_window,last_snapshot_repeat,pca,mlp_ae \
+  --pca-latent-dims 8,16,32,64,128 \
+  --mlp-latent-dims 16,32,64 \
+  --max-epochs 100 \
+  --batch-size 256 \
+  --device auto \
+  --save-latents
+```
+
+Validation:
+
+- `latent_manifest.json` now records `latents_saved=true` and `save_latents_flag=true`.
+- 27 local `.npy` latent files were generated under `artifacts/step6_reconstruction_baselines/latents/`.
+- Manifest shapes match the saved local latent arrays.
+- The train-mean baseline has no latent representation, so its three manifest entries remain `latents_saved=false`.
+- No `artifacts/` files were committed.
+- Step 6 best reconstruction remains `pca@128` with unchanged reconstruction metric values; rerun differences in `metrics.csv` and `model_manifest.json` are timing fields.

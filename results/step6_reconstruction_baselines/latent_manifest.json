@@ -1,10 +1,10 @@
 {
-  "latents_saved": false,
-  "save_latents_flag": false,
+  "latents_saved": true,
+  "save_latents_flag": true,
   "entries": [
     {
       "latents_saved": false,
-      "save_latents_flag": false,
+      "save_latents_flag": true,
       "model": "train_mean_window",
       "latent_dim": null,
       "split": "train",
@@ -14,7 +14,7 @@
     },
     {
       "latents_saved": false,
-      "save_latents_flag": false,
+      "save_latents_flag": true,
       "model": "train_mean_window",
       "latent_dim": null,
       "split": "val",
@@ -24,7 +24,7 @@
     },
     {
       "latents_saved": false,
-      "save_latents_flag": false,
+      "save_latents_flag": true,
       "model": "train_mean_window",
       "latent_dim": null,
       "split": "test",
@@ -33,273 +33,354 @@
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "last_snapshot_repeat",
       "latent_dim": 40,
       "split": "train",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        5600,
+        40
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/last_snapshot_repeat_latent40_train.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "last_snapshot_repeat",
       "latent_dim": 40,
       "split": "val",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        1200,
+        40
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/last_snapshot_repeat_latent40_val.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "last_snapshot_repeat",
       "latent_dim": 40,
       "split": "test",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        1152,
+        40
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/last_snapshot_repeat_latent40_test.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "pca",
       "latent_dim": 8,
       "split": "train",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        5600,
+        8
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/pca_latent8_train.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "pca",
       "latent_dim": 8,
       "split": "val",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        1200,
+        8
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/pca_latent8_val.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "pca",
       "latent_dim": 8,
       "split": "test",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        1152,
+        8
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/pca_latent8_test.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "pca",
       "latent_dim": 16,
       "split": "train",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        5600,
+        16
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/pca_latent16_train.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "pca",
       "latent_dim": 16,
       "split": "val",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        1200,
+        16
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/pca_latent16_val.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "pca",
       "latent_dim": 16,
       "split": "test",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        1152,
+        16
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/pca_latent16_test.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "pca",
       "latent_dim": 32,
       "split": "train",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        5600,
+        32
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/pca_latent32_train.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "pca",
       "latent_dim": 32,
       "split": "val",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        1200,
+        32
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/pca_latent32_val.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "pca",
       "latent_dim": 32,
       "split": "test",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        1152,
+        32
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/pca_latent32_test.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "pca",
       "latent_dim": 64,
       "split": "train",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        5600,
+        64
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/pca_latent64_train.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "pca",
       "latent_dim": 64,
       "split": "val",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        1200,
+        64
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/pca_latent64_val.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "pca",
       "latent_dim": 64,
       "split": "test",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        1152,
+        64
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/pca_latent64_test.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "pca",
       "latent_dim": 128,
       "split": "train",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        5600,
+        128
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/pca_latent128_train.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "pca",
       "latent_dim": 128,
       "split": "val",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        1200,
+        128
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/pca_latent128_val.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "pca",
       "latent_dim": 128,
       "split": "test",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        1152,
+        128
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/pca_latent128_test.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "mlp_ae",
       "latent_dim": 16,
       "split": "train",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        5600,
+        16
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/mlp_ae_latent16_train.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "mlp_ae",
       "latent_dim": 16,
       "split": "val",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        1200,
+        16
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/mlp_ae_latent16_val.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "mlp_ae",
       "latent_dim": 16,
       "split": "test",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        1152,
+        16
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/mlp_ae_latent16_test.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "mlp_ae",
       "latent_dim": 32,
       "split": "train",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        5600,
+        32
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/mlp_ae_latent32_train.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "mlp_ae",
       "latent_dim": 32,
       "split": "val",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        1200,
+        32
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/mlp_ae_latent32_val.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "mlp_ae",
       "latent_dim": 32,
       "split": "test",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        1152,
+        32
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/mlp_ae_latent32_test.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "mlp_ae",
       "latent_dim": 64,
       "split": "train",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        5600,
+        64
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/mlp_ae_latent64_train.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "mlp_ae",
       "latent_dim": 64,
       "split": "val",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        1200,
+        64
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/mlp_ae_latent64_val.npy",
       "committed": false
     },
     {
-      "latents_saved": false,
-      "save_latents_flag": false,
+      "latents_saved": true,
+      "save_latents_flag": true,
       "model": "mlp_ae",
       "latent_dim": 64,
       "split": "test",
-      "latent_shape": null,
-      "artifact_path": null,
+      "latent_shape": [
+        1152,
+        64
+      ],
+      "artifact_path": "artifacts/step6_reconstruction_baselines/latents/mlp_ae_latent64_test.npy",
       "committed": false
     }
   ]
