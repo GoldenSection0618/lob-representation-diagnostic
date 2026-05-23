@@ -3,7 +3,7 @@
 ## Scope
 - Step 7 uses the locked stride-4 boundary-purged chronological protocol.
 - Step 7 does not run random split or no-purge split ablations.
-- Reconstruction encoders are frozen; Step 7 trains only logistic heads on saved latent arrays.
+- Reconstruction encoders are frozen; Step 7 trains only logistic heads on saved latent arrays and one matched flattened raw-window control.
 - Evidence is limited to one symbol (`sz000001`), one horizon (`trend5`), and one subset.
 
 ## Join Contract
@@ -18,9 +18,11 @@
 - The heatmap uses AUROC where failure is binary; for low `proba_true`, it uses absolute Spearman association.
 
 ## Frozen Latent Transfer
-- Best raw-window baseline by test macro-F1: `logistic_regression` (`0.397216`).
+- Best fixed Step 5 raw-window baseline by test macro-F1: `logistic_regression` (`0.397216`).
+- Matched raw-window logistic head by test macro-F1: `raw_window_logistic_tuned` (`0.390383`, selected C=`0.1`).
 - Best frozen latent head by test macro-F1: `last_snapshot_repeat@40` (`0.435540`).
-- Frozen latent head beat best raw-window baseline: `True`.
+- Frozen latent head beat fixed Step 5 raw-window baseline: `True`.
+- Frozen latent head beat matched tuned raw-window head: `True`.
 
 ## Reconstruction-Prediction Rank Alignment
 - Best test reconstruction normalized_mse variant: `pca@128`.

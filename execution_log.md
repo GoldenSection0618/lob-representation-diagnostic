@@ -676,7 +676,9 @@ Best latent-head test result:
 - test MCC: `0.257922`
 - test log loss: `1.074270`
 - best Step 5 raw-window baseline by test macro-F1: `logistic_regression` (`0.397216`)
-- frozen latent head beat the best raw-window baseline by test macro-F1: `true`
+- matched raw-window logistic head: `raw_window_logistic_tuned`, selected C `0.1`, test macro-F1 `0.390383`, test balanced accuracy `0.407893`, test MCC `0.097794`, test log loss `2.049989`
+- frozen latent head beat the fixed Step 5 raw-window logistic baseline by test macro-F1: `true`
+- frozen latent head beat the matched tuned raw-window logistic head by test macro-F1: `true`
 
 Reconstruction-prediction rank result:
 
@@ -726,3 +728,40 @@ Scope guard:
 - No Step 3/4/5/6 outputs were regenerated for Step 7.
 - No reconstruction encoders were retrained.
 - Evidence remains limited to `sz000001`, `trend5`, and this stride-4 subset.
+
+## Step 7 Matched Raw-Window Head Addendum
+
+I added a matched raw-window logistic head to avoid comparing tuned frozen-latent heads against only a fixed-C Step 5 logistic baseline.
+
+Implementation change:
+
+- `scripts/04_alignment_analysis.py` now loads `data/processed/minimal_subset/X.npy`, `y.npy`, and `samples.csv`.
+- It flattens the raw Step 3 windows and trains `raw_window_logistic_tuned` with the same head policy used for frozen latents.
+- The policy is train-only `StandardScaler`, `class_weight="balanced"`, C grid `0.01, 0.1, 1.0, 10.0`, validation macro-F1 selection, MCC tie-break, then log-loss tie-break.
+- Test remains final evaluation only.
+
+Rerun command:
+
+```bash
+mamba run -n lob python scripts/04_alignment_analysis.py \
+  --step5-dir results/step5_prediction_baselines \
+  --step6-dir results/step6_reconstruction_baselines \
+  --latent-artifact-dir artifacts/step6_reconstruction_baselines/latents \
+  --output-dir results/step7_alignment \
+  --figures-dir figures/step7_alignment \
+  --seed 42 \
+  --head-c-grid 0.01,0.1,1.0,10.0 \
+  --primary-prediction-model-for-sample-analysis logistic_regression \
+  --selection-metric macro_f1
+```
+
+Matched comparison result on test:
+
+- `last_snapshot_repeat@40`: macro-F1 `0.435540`
+- fixed Step 5 `logistic_regression`: macro-F1 `0.397216`
+- `raw_window_logistic_tuned`: selected C `0.1`, macro-F1 `0.390383`
+
+Interpretation after this addendum:
+
+- The best frozen latent head beats both the fixed Step 5 raw-window logistic baseline and the matched tuned raw-window logistic head in this run.
+- This strengthens the transfer comparison but does not change the scope guard: the evidence remains one symbol, one horizon, and one stride-4 subset.

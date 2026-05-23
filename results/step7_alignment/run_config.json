@@ -2,6 +2,7 @@
   "step": "step7_alignment",
   "sample_stride": 4,
   "split_protocol": "boundary-purged chronological",
+  "subset_dir": "data/processed/minimal_subset",
   "step5_dir": "results/step5_prediction_baselines",
   "step6_dir": "results/step6_reconstruction_baselines",
   "latent_artifact_dir": "artifacts/step6_reconstruction_baselines/latents",
@@ -44,6 +45,21 @@
     10.0
   ],
   "head_selection_metric": "macro_f1",
+  "matched_raw_window_head": {
+    "source": "matched_raw_window_head",
+    "variant": "raw_window_logistic_tuned",
+    "features": "flattened Step 3 raw windows from X.npy",
+    "scaler": "train-only StandardScaler inside sklearn Pipeline",
+    "class_weight": "balanced",
+    "c_grid": [
+      0.01,
+      0.1,
+      1.0,
+      10.0
+    ],
+    "selection": "validation macro_f1, tie-broken by validation MCC then validation log_loss",
+    "test_policy": "test split used only for final evaluation"
+  },
   "primary_prediction_model_for_sample_analysis": "logistic_regression",
   "join_keys": [
     "sample_id",

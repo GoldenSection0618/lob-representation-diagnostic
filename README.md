@@ -61,9 +61,11 @@ Step 7 reconstruction-prediction alignment snapshot:
 
 - Join contract: `passed`; expected and actual joined rows are both `70560`.
 - Best Step 5 raw-window baseline by test macro-F1: `logistic_regression` (`0.3972`).
+- Matched raw-window logistic head with the same Step 7 C-grid policy: `raw_window_logistic_tuned` (`macro_f1=0.3904`, selected `C=0.1`).
 - Best frozen-latent logistic head by test macro-F1: `last_snapshot_repeat@40` (`0.4355`, `balanced_accuracy=0.5509`, `mcc=0.2579`).
 - Best reconstruction variant by test normalized MSE: `pca@128` (`0.1838`).
 - The reconstruction-best and frozen-head prediction-best variants are not the same.
+- The best frozen-latent head beats both the fixed Step 5 logistic baseline and the matched tuned raw-window logistic head in this run.
 - Across the nine frozen-latent variants, Spearman(`test_recon_normalized_mse`, `test_pred_macro_f1`) is `-0.2000`; this is descriptive only and does not support treating overall reconstruction MSE as a reliable downstream proxy.
 - For the Step 5 `logistic_regression` sample-level failure view, `spread_mae` has the highest mean AUROC for incorrect prediction (`0.5204`), followed by `top_of_book_mse` (`0.5035`); these associations are weak and diagnostic, not causal claims.
 

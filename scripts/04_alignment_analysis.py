@@ -428,6 +428,141 @@ def sample_meta_from_recon(recon_raw: pd.DataFrame) -> Dict[str, pd.DataFrame]:
     return {split: part.sort_values("sample_id").reset_index(drop=True) for split, part in dedup.groupby("split")}
 
 
+def fit_logistic_head(
+    features: Dict[str, np.ndarray],
+    sample_meta: Dict[str, pd.DataFrame],
+    c_grid: Sequence[float],
+    selection_metric: str,
+    seed: int,
+) -> Tuple[Pipeline, float]:
+    y = {split: sample_meta[split]["y_true"].astype(int).to_numpy() for split in ["train", "val", "test"]}
+    best = None
+    for c in c_grid:
+        pipe = Pipeline(
+            steps=[
+                ("scaler", StandardScaler()),
+                (
+                    "clf",
+                    LogisticRegression(
+                        C=float(c),
+                        class_weight="balanced",
+                        max_iter=2000,
+                        random_state=seed,
+                        solver="lbfgs",
+                    ),
+                ),
+            ]
+        )
+        pipe.fit(features["train"], y["train"])
+        val_pred = pipe.predict(features["val"]).astype(int)
+        val_proba = class_aligned_proba(pipe.predict_proba(features["val"]), pipe.named_steps["clf"].classes_)
+        val_metrics = compute_prediction_metrics(y["val"], val_pred, val_proba)
+        candidate = (
+            float(val_metrics[selection_metric]),
+            float(val_metrics["mcc"]),
+            -float(val_metrics["log_loss"]),
+            float(c),
+            pipe,
+        )
+        if best is None or candidate[:3] > best[:3]:
+            best = candidate
+    if best is None:
+        raise RuntimeError("No logistic head candidate was fitted.")
+    return best[4], float(best[3])
+
+
+def evaluate_logistic_head(
+    pipe: Pipeline,
+    features: Dict[str, np.ndarray],
+    sample_meta: Dict[str, pd.DataFrame],
+    representation_model: str,
+    representation_variant: str,
+    latent_dim: int | None,
+    compression_ratio: float | None,
+    head_c: float,
+    selected_by: str,
+) -> Tuple[List[Dict[str, object]], List[pd.DataFrame]]:
+    metrics_rows: List[Dict[str, object]] = []
+    pred_parts: List[pd.DataFrame] = []
+    y = {split: sample_meta[split]["y_true"].astype(int).to_numpy() for split in ["train", "val", "test"]}
+
+    for split in ["train", "val", "test"]:
+        y_pred = pipe.predict(features[split]).astype(int)
+        y_proba = class_aligned_proba(pipe.predict_proba(features[split]), pipe.named_steps["clf"].classes_)
+        metrics = compute_prediction_metrics(y[split], y_pred, y_proba)
+        row = {
+            "representation_model": representation_model,
+            "representation_variant": representation_variant,
+            "latent_dim": latent_dim,
+            "compression_ratio": compression_ratio,
+            "head_model": "logistic_regression",
+            "head_C": head_c,
+            "head_class_weight": "balanced",
+            "selected_by": selected_by,
+            "split": split,
+        }
+        for key in [
+            "accuracy",
+            "balanced_accuracy",
+            "macro_f1",
+            "mcc",
+            "log_loss",
+            "weighted_f1",
+            "non_neutral_recall",
+            "non_neutral_precision",
+            "directional_accuracy_non_neutral",
+            "up_down_macro_f1",
+            "opposite_direction_rate",
+        ]:
+            row[key] = metrics[key]
+        metrics_rows.append(row)
+
+        meta = sample_meta[split].copy()
+        meta["representation_variant"] = representation_variant
+        meta["latent_dim"] = latent_dim
+        meta["head_model"] = "logistic_regression"
+        meta["head_C"] = head_c
+        meta["y_pred"] = y_pred
+        meta["correct"] = y_pred == y[split]
+        meta["confidence"] = np.max(y_proba, axis=1)
+        meta["proba_0"] = y_proba[:, 0]
+        meta["proba_1"] = y_proba[:, 1]
+        meta["proba_2"] = y_proba[:, 2]
+        meta["proba_true"] = y_proba[np.arange(len(meta)), y[split]]
+        meta["proba_margin"] = proba_margin(y_proba)
+        true_non_neutral = np.isin(y[split], [0, 2])
+        meta["direction_correct_non_neutral"] = np.where(true_non_neutral, y_pred == y[split], np.nan)
+        meta["opposite_direction_error"] = (
+            ((y[split] == 0) & (y_pred == 2)) | ((y[split] == 2) & (y_pred == 0))
+        )
+        pred_parts.append(
+            meta[
+                [
+                    "sample_id",
+                    "original_sample_id",
+                    "label_row",
+                    "split",
+                    "y_true",
+                    "representation_variant",
+                    "latent_dim",
+                    "head_model",
+                    "head_C",
+                    "y_pred",
+                    "correct",
+                    "confidence",
+                    "proba_0",
+                    "proba_1",
+                    "proba_2",
+                    "proba_true",
+                    "proba_margin",
+                    "direction_correct_non_neutral",
+                    "opposite_direction_error",
+                ]
+            ]
+        )
+    return metrics_rows, pred_parts
+
+
 def fit_latent_heads(
     latent_manifest: Dict[str, object],
     latent_artifact_dir: Path,
@@ -456,139 +591,94 @@ def fit_latent_heads(
             if list(arrays[split].shape) != entry["latent_shape"]:
                 raise ValueError(f"Latent shape mismatch for {path}: {arrays[split].shape} vs {entry['latent_shape']}")
 
-        y = {split: sample_meta[split]["y_true"].astype(int).to_numpy() for split in ["train", "val", "test"]}
-        best = None
-        for c in c_grid:
-            pipe = Pipeline(
-                steps=[
-                    ("scaler", StandardScaler()),
-                    (
-                        "clf",
-                        LogisticRegression(
-                            C=float(c),
-                            class_weight="balanced",
-                            max_iter=2000,
-                            random_state=seed,
-                            solver="lbfgs",
-                        ),
-                    ),
-                ]
-            )
-            pipe.fit(arrays["train"], y["train"])
-            val_pred = pipe.predict(arrays["val"]).astype(int)
-            val_proba = class_aligned_proba(pipe.predict_proba(arrays["val"]), pipe.named_steps["clf"].classes_)
-            val_metrics = compute_prediction_metrics(y["val"], val_pred, val_proba)
-            candidate = (
-                float(val_metrics[selection_metric]),
-                float(val_metrics["mcc"]),
-                -float(val_metrics["log_loss"]),
-                float(c),
-                pipe,
-            )
-            if best is None or candidate[:3] > best[:3]:
-                best = candidate
-
-        assert best is not None
-        head_c = float(best[3])
-        pipe = best[4]
+        pipe, head_c = fit_logistic_head(arrays, sample_meta, c_grid, selection_metric, seed)
         variants_used.append(variant)
 
         variant_row = step6_metrics[(step6_metrics["model_variant"] == variant) & (step6_metrics["split"] == "test")]
         latent_dim = None if variant_row.empty or pd.isna(variant_row.iloc[0]["latent_dim"]) else int(variant_row.iloc[0]["latent_dim"])
         compression_ratio = None if variant_row.empty or pd.isna(variant_row.iloc[0]["compression_ratio"]) else float(variant_row.iloc[0]["compression_ratio"])
         representation_model = str(variant_row.iloc[0]["model"]) if not variant_row.empty else variant.split("@")[0]
-
-        for split in ["train", "val", "test"]:
-            y_pred = pipe.predict(arrays[split]).astype(int)
-            y_proba = class_aligned_proba(pipe.predict_proba(arrays[split]), pipe.named_steps["clf"].classes_)
-            metrics = compute_prediction_metrics(y[split], y_pred, y_proba)
-            row = {
-                "representation_model": representation_model,
-                "representation_variant": variant,
-                "latent_dim": latent_dim,
-                "compression_ratio": compression_ratio,
-                "head_model": "logistic_regression",
-                "head_C": head_c,
-                "head_class_weight": "balanced",
-                "selected_by": f"val_{selection_metric}_tie_mcc_log_loss",
-                "split": split,
-            }
-            for key in [
-                "accuracy",
-                "balanced_accuracy",
-                "macro_f1",
-                "mcc",
-                "log_loss",
-                "weighted_f1",
-                "non_neutral_recall",
-                "non_neutral_precision",
-                "directional_accuracy_non_neutral",
-                "up_down_macro_f1",
-                "opposite_direction_rate",
-            ]:
-                row[key] = metrics[key]
-            metrics_rows.append(row)
-
-            meta = sample_meta[split].copy()
-            meta["representation_variant"] = variant
-            meta["latent_dim"] = latent_dim
-            meta["head_model"] = "logistic_regression"
-            meta["head_C"] = head_c
-            meta["y_pred"] = y_pred
-            meta["correct"] = y_pred == y[split]
-            meta["confidence"] = np.max(y_proba, axis=1)
-            meta["proba_0"] = y_proba[:, 0]
-            meta["proba_1"] = y_proba[:, 1]
-            meta["proba_2"] = y_proba[:, 2]
-            meta["proba_true"] = y_proba[np.arange(len(meta)), y[split]]
-            meta["proba_margin"] = proba_margin(y_proba)
-            true_non_neutral = np.isin(y[split], [0, 2])
-            meta["direction_correct_non_neutral"] = np.where(true_non_neutral, y_pred == y[split], np.nan)
-            meta["opposite_direction_error"] = (
-                ((y[split] == 0) & (y_pred == 2)) | ((y[split] == 2) & (y_pred == 0))
-            )
-            pred_parts.append(
-                meta[
-                    [
-                        "sample_id",
-                        "original_sample_id",
-                        "label_row",
-                        "split",
-                        "y_true",
-                        "representation_variant",
-                        "latent_dim",
-                        "head_model",
-                        "head_C",
-                        "y_pred",
-                        "correct",
-                        "confidence",
-                        "proba_0",
-                        "proba_1",
-                        "proba_2",
-                        "proba_true",
-                        "proba_margin",
-                        "direction_correct_non_neutral",
-                        "opposite_direction_error",
-                    ]
-                ]
-            )
+        variant_metrics, variant_predictions = evaluate_logistic_head(
+            pipe,
+            arrays,
+            sample_meta,
+            representation_model=representation_model,
+            representation_variant=variant,
+            latent_dim=latent_dim,
+            compression_ratio=compression_ratio,
+            head_c=head_c,
+            selected_by=f"val_{selection_metric}_tie_mcc_log_loss",
+        )
+        metrics_rows.extend(variant_metrics)
+        pred_parts.extend(variant_predictions)
 
     return pd.DataFrame(metrics_rows), pd.concat(pred_parts, ignore_index=True), variants_used
 
 
-def transfer_baseline_comparison(step5_metrics: pd.DataFrame, latent_metrics: pd.DataFrame) -> pd.DataFrame:
+def fit_matched_raw_window_head(
+    subset_dir: Path,
+    sample_meta: Dict[str, pd.DataFrame],
+    c_grid: Sequence[float],
+    selection_metric: str,
+    seed: int,
+) -> pd.DataFrame:
+    required = [subset_dir / "X.npy", subset_dir / "y.npy", subset_dir / "samples.csv"]
+    missing = [str(p) for p in required if not p.exists()]
+    if missing:
+        raise FileNotFoundError(f"Missing raw-window subset files for matched baseline: {missing}")
+
+    x_all = np.load(subset_dir / "X.npy")
+    y_all = np.load(subset_dir / "y.npy").astype(int)
+    samples = pd.read_csv(subset_dir / "samples.csv")
+    if not np.array_equal(samples["sample_id"].to_numpy(), np.arange(len(samples))):
+        raise ValueError("samples.csv sample_id is not contiguous, so raw-window indexing is ambiguous.")
+    if len(x_all) != len(samples) or len(y_all) != len(samples):
+        raise ValueError("X.npy, y.npy, and samples.csv row counts do not match.")
+
+    features: Dict[str, np.ndarray] = {}
+    for split in ["train", "val", "test"]:
+        meta = sample_meta[split].sort_values("sample_id").reset_index(drop=True)
+        sample_ids = meta["sample_id"].astype(int).to_numpy()
+        if not np.array_equal(y_all[sample_ids], meta["y_true"].astype(int).to_numpy()):
+            raise ValueError(f"y.npy labels do not match Step 6 sample metadata for split {split}.")
+        features[split] = x_all[sample_ids].reshape(len(sample_ids), -1)
+
+    pipe, head_c = fit_logistic_head(features, sample_meta, c_grid, selection_metric, seed)
+    metrics_rows, _ = evaluate_logistic_head(
+        pipe,
+        features,
+        sample_meta,
+        representation_model="raw_window",
+        representation_variant="raw_window_logistic_tuned",
+        latent_dim=int(np.prod(x_all.shape[1:])),
+        compression_ratio=1.0,
+        head_c=head_c,
+        selected_by=f"val_{selection_metric}_tie_mcc_log_loss",
+    )
+    return pd.DataFrame(metrics_rows)
+
+
+def transfer_baseline_comparison(
+    step5_metrics: pd.DataFrame,
+    latent_metrics: pd.DataFrame,
+    matched_raw_metrics: pd.DataFrame,
+) -> pd.DataFrame:
     raw = step5_metrics.copy()
     raw["source"] = "raw_window_baseline"
     raw["variant"] = raw["model"]
     raw["head_or_model"] = raw["model"]
     raw["latent_dim"] = np.nan
     raw["compression_ratio"] = np.nan
+    raw["head_C"] = np.nan
+    raw["selected_by"] = "step5_fixed_baseline_policy"
     raw_cols = [
         "source",
         "variant",
         "head_or_model",
         "latent_dim",
         "compression_ratio",
+        "head_C",
+        "selected_by",
         "split",
         "accuracy",
         "balanced_accuracy",
@@ -603,7 +693,12 @@ def transfer_baseline_comparison(step5_metrics: pd.DataFrame, latent_metrics: pd
     latent["source"] = "frozen_latent_head"
     latent["variant"] = latent["representation_variant"]
     latent["head_or_model"] = latent["head_model"]
-    return pd.concat([raw[raw_cols], latent[raw_cols]], ignore_index=True)
+
+    matched = matched_raw_metrics.copy()
+    matched["source"] = "matched_raw_window_head"
+    matched["variant"] = matched["representation_variant"]
+    matched["head_or_model"] = matched["head_model"]
+    return pd.concat([raw[raw_cols], matched[raw_cols], latent[raw_cols]], ignore_index=True)
 
 
 def model_level_rank_alignment(
@@ -732,7 +827,7 @@ def plot_transfer(comparison: pd.DataFrame, fig_path: Path) -> None:
     test = test.sort_values(["source", "macro_f1"], ascending=[True, False])
     plt.figure(figsize=(12, 5))
     x = np.arange(len(test))
-    for source in ["raw_window_baseline", "frozen_latent_head"]:
+    for source in ["raw_window_baseline", "matched_raw_window_head", "frozen_latent_head"]:
         mask = test["source"] == source
         plt.bar(x[mask], test.loc[mask, "macro_f1"], label=source)
     plt.xticks(x, test["variant"].tolist(), rotation=35, ha="right")
@@ -860,6 +955,7 @@ def write_summary(
 ) -> None:
     test_comp = comparison[comparison["split"] == "test"].copy()
     raw_best = test_comp[test_comp["source"] == "raw_window_baseline"].sort_values("macro_f1", ascending=False).iloc[0]
+    matched_raw = test_comp[test_comp["source"] == "matched_raw_window_head"].sort_values("macro_f1", ascending=False).iloc[0]
     latent_best = test_comp[test_comp["source"] == "frozen_latent_head"].sort_values("macro_f1", ascending=False).iloc[0]
     recon_best = rank_df.sort_values("test_recon_normalized_mse").iloc[0]
     same_variant = str(latent_best["variant"]) == str(recon_best["representation_variant"])
@@ -877,7 +973,7 @@ def write_summary(
         "## Scope",
         "- Step 7 uses the locked stride-4 boundary-purged chronological protocol.",
         "- Step 7 does not run random split or no-purge split ablations.",
-        "- Reconstruction encoders are frozen; Step 7 trains only logistic heads on saved latent arrays.",
+        "- Reconstruction encoders are frozen; Step 7 trains only logistic heads on saved latent arrays and one matched flattened raw-window control.",
         "- Evidence is limited to one symbol (`sz000001`), one horizon (`trend5`), and one subset.",
         "",
         "## Join Contract",
@@ -892,9 +988,11 @@ def write_summary(
         "- The heatmap uses AUROC where failure is binary; for low `proba_true`, it uses absolute Spearman association.",
         "",
         "## Frozen Latent Transfer",
-        f"- Best raw-window baseline by test macro-F1: `{raw_best['variant']}` (`{raw_best['macro_f1']:.6f}`).",
+        f"- Best fixed Step 5 raw-window baseline by test macro-F1: `{raw_best['variant']}` (`{raw_best['macro_f1']:.6f}`).",
+        f"- Matched raw-window logistic head by test macro-F1: `{matched_raw['variant']}` (`{matched_raw['macro_f1']:.6f}`, selected C=`{matched_raw['head_C']}`).",
         f"- Best frozen latent head by test macro-F1: `{latent_best['variant']}` (`{latent_best['macro_f1']:.6f}`).",
-        f"- Frozen latent head beat best raw-window baseline: `{bool(latent_best['macro_f1'] > raw_best['macro_f1'])}`.",
+        f"- Frozen latent head beat fixed Step 5 raw-window baseline: `{bool(latent_best['macro_f1'] > raw_best['macro_f1'])}`.",
+        f"- Frozen latent head beat matched tuned raw-window head: `{bool(latent_best['macro_f1'] > matched_raw['macro_f1'])}`.",
         "",
         "## Reconstruction-Prediction Rank Alignment",
         f"- Best test reconstruction normalized_mse variant: `{recon_best['representation_variant']}`.",
@@ -916,6 +1014,7 @@ def write_summary(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Step 7 reconstruction-prediction alignment")
+    parser.add_argument("--subset-dir", default="data/processed/minimal_subset")
     parser.add_argument("--step5-dir", default="results/step5_prediction_baselines")
     parser.add_argument("--step6-dir", default="results/step6_reconstruction_baselines")
     parser.add_argument("--latent-artifact-dir", default="artifacts/step6_reconstruction_baselines/latents")
@@ -927,6 +1026,7 @@ def main() -> int:
     parser.add_argument("--selection-metric", default="macro_f1")
     args = parser.parse_args()
 
+    subset_dir = Path(args.subset_dir)
     step5_dir = Path(args.step5_dir)
     step6_dir = Path(args.step6_dir)
     latent_artifact_dir = Path(args.latent_artifact_dir)
@@ -965,11 +1065,18 @@ def main() -> int:
         args.selection_metric,
         args.seed,
     )
+    matched_raw_metrics = fit_matched_raw_window_head(
+        subset_dir,
+        sample_meta,
+        c_grid,
+        args.selection_metric,
+        args.seed,
+    )
 
     assoc = sample_diagnostic_association(panel)
     qdf = error_quantile_response(panel)
     failure_delta = failure_mode_error_delta(panel, seed=args.seed)
-    comparison = transfer_baseline_comparison(inputs["step5_metrics"], latent_metrics)
+    comparison = transfer_baseline_comparison(inputs["step5_metrics"], latent_metrics, matched_raw_metrics)
     rank_df, corr_df = model_level_rank_alignment(
         inputs["step6_metrics"],
         inputs["step6_lobench"],
@@ -994,6 +1101,7 @@ def main() -> int:
         "step": "step7_alignment",
         "sample_stride": int(inputs["step6_config"]["step3_metadata_summary"]["sample_stride"]),
         "split_protocol": "boundary-purged chronological",
+        "subset_dir": str(subset_dir.resolve()),
         "step5_dir": str(step5_dir.resolve()),
         "step6_dir": str(step6_dir.resolve()),
         "latent_artifact_dir": str(latent_artifact_dir.resolve()),
@@ -1006,6 +1114,16 @@ def main() -> int:
         "head_model": "logistic_regression",
         "head_c_grid": c_grid,
         "head_selection_metric": args.selection_metric,
+        "matched_raw_window_head": {
+            "source": "matched_raw_window_head",
+            "variant": "raw_window_logistic_tuned",
+            "features": "flattened Step 3 raw windows from X.npy",
+            "scaler": "train-only StandardScaler inside sklearn Pipeline",
+            "class_weight": "balanced",
+            "c_grid": c_grid,
+            "selection": f"validation {args.selection_metric}, tie-broken by validation MCC then validation log_loss",
+            "test_policy": "test split used only for final evaluation",
+        },
         "primary_prediction_model_for_sample_analysis": args.primary_prediction_model_for_sample_analysis,
         "join_keys": ["sample_id", "split", "y_true"],
         "sample_level_diagnostics": SAMPLE_DIAGNOSTICS,

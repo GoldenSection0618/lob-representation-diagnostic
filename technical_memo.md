@@ -77,12 +77,13 @@ Frozen-latent transfer leaderboard on the test split:
 | --- | --- | ---: | ---: | ---: | ---: |
 | frozen latent head | last_snapshot_repeat@40 | 0.4355 | 0.5509 | 0.2579 | 1.0743 |
 | raw window baseline | logistic_regression | 0.3972 | 0.4098 | 0.1007 | 4.1624 |
+| matched raw-window head | raw_window_logistic_tuned | 0.3904 | 0.4079 | 0.0978 | 2.0500 |
 | raw window baseline | mlp | 0.3816 | 0.4513 | 0.1624 | 1.2767 |
 | frozen latent head | pca@128 | 0.3624 | 0.4143 | 0.1281 | 1.2174 |
 | frozen latent head | pca@32 | 0.3619 | 0.4085 | 0.1200 | 1.1262 |
 | raw window baseline | majority | 0.2612 | 0.3333 | 0.0000 | 0.8980 |
 
-The best frozen latent head beats the best Step 5 raw-window baseline by test macro-F1 in this controlled run. That does not imply a general SOTA claim; the result is limited to `sz000001`, `trend5`, and this stride-4 subset.
+The best frozen latent head beats the fixed Step 5 raw-window logistic baseline and the matched raw-window logistic head by test macro-F1 in this controlled run. The matched raw-window head uses the same Step 7 head policy as the latent heads: train-only `StandardScaler`, `class_weight="balanced"`, C grid `{0.01, 0.1, 1.0, 10.0}`, and validation macro-F1 selection with MCC/log-loss tie-breaks. It selected `C=0.1` and reached test macro-F1 `0.3904`. This does not imply a general SOTA claim; the result is limited to `sz000001`, `trend5`, and this stride-4 subset.
 
 Rank alignment:
 
