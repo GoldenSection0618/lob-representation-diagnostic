@@ -114,4 +114,28 @@ Checks passed:
 - `chronological_split_check`
 - `output_safety_check`
 
-Step 3 is complete. Step 4 should implement reconstruction baselines while keeping this data contract unchanged.
+Step 3 is complete. Step 4 locks the evaluation protocol before baseline modeling.
+
+## Step 4: Lock the Leakage-Aware Chronological Evaluation Protocol
+
+Step 4 is a documentation and protocol-locking step.
+
+What changed:
+
+- Step 4 did not change the Step 3 data pipeline.
+- Step 4 did not add random split.
+- Step 4 did not add no-purge split.
+- The existing `chronological_split()` implementation remains the main protocol.
+- Boundary purge is mandatory for the current main evaluation.
+
+Key invariant:
+
+The main split must satisfy:
+
+- train label rows < validation label rows < test label rows
+- train/validation boundary windows must not overlap in historical rows
+- validation/test boundary windows must not overlap in historical rows
+
+Next step:
+
+Step 5 will build prediction-only baselines before reconstruction baselines.
