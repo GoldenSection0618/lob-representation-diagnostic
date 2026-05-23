@@ -180,3 +180,88 @@ Generated figures:
 - `figures/step5_prediction_baselines/log_loss_by_model.png`
 
 Step 5 kept the Step 3 data contract and Step 4 protocol unchanged. Reconstruction baselines are still the next step.
+
+## Step 6: Reconstruction Baselines
+
+I built reconstruction-only baselines on the locked Step 3 subset without touching subset generation, split construction, or label generation.
+
+Files added or modified:
+
+- `src/models/reconstruction_baselines.py`
+- `src/analysis/reconstruction_metrics.py`
+- `scripts/03_reconstruction_baselines.py`
+- `results/step6_reconstruction_baselines/*`
+- `figures/step6_reconstruction_baselines/*`
+- `README.md`
+- `technical_memo.md`
+- `execution_log.md`
+
+Command:
+
+```bash
+mamba run -n lob python scripts/03_reconstruction_baselines.py \
+  --subset-dir data/processed/minimal_subset \
+  --output-dir results/step6_reconstruction_baselines \
+  --figures-dir figures/step6_reconstruction_baselines \
+  --artifact-dir artifacts/step6_reconstruction_baselines \
+  --seed 42 \
+  --models train_mean_window,last_snapshot_repeat,pca,mlp_ae \
+  --pca-latent-dims 8,16,32,64,128 \
+  --mlp-latent-dims 16,32,64 \
+  --max-epochs 100 \
+  --batch-size 256 \
+  --device auto
+```
+
+Split sizes (unchanged from Step 3):
+
+- train: `5600`
+- val: `1200`
+- test: `1002`
+
+Models and latent dimensions run:
+
+- `train_mean_window`
+- `last_snapshot_repeat` (`latent_dim=40`)
+- `pca` with `latent_dim in {8,16,32,64,128}`
+- `mlp_ae` with `latent_dim in {16,32,64}`
+
+Best test reconstruction by normalized MSE:
+
+- `pca@128`
+- `normalized_mse=0.191170`
+- `normalized_mae=0.239629`
+- `original_mae=0.135957`
+- `relative_mse_vs_last_snapshot=0.288494`
+
+Generated result files:
+
+- `results/step6_reconstruction_baselines/metrics.csv`
+- `results/step6_reconstruction_baselines/rate_distortion.csv`
+- `results/step6_reconstruction_baselines/feature_group_errors.csv`
+- `results/step6_reconstruction_baselines/level_wise_errors.csv`
+- `results/step6_reconstruction_baselines/temporal_errors.csv`
+- `results/step6_reconstruction_baselines/derived_lob_errors.csv`
+- `results/step6_reconstruction_baselines/per_sample_reconstruction_errors.csv`
+- `results/step6_reconstruction_baselines/model_manifest.json`
+- `results/step6_reconstruction_baselines/latent_manifest.json`
+- `results/step6_reconstruction_baselines/run_config.json`
+- `results/step6_reconstruction_baselines/summary.md`
+
+Generated figures:
+
+- `figures/step6_reconstruction_baselines/rate_distortion_curve.png`
+- `figures/step6_reconstruction_baselines/reconstruction_scorecard_by_model.png`
+- `figures/step6_reconstruction_baselines/feature_group_error_by_model.png`
+- `figures/step6_reconstruction_baselines/level_wise_error_heatmap_best_model.png`
+- `figures/step6_reconstruction_baselines/temporal_error_profile.png`
+
+Protocol invariants preserved:
+
+- Step 6 did not modify Step 3 subset generation or data contract.
+- Step 6 did not modify Step 4 boundary-purged chronological split policy.
+- Step 6 did not add random split or no-purge split.
+- Step 6 did not train prediction heads.
+- Step 6 did not run reconstruction-prediction alignment.
+
+Next step is Step 7 alignment analysis using `per_sample_reconstruction_errors.csv` together with prediction outputs under the same locked protocol.

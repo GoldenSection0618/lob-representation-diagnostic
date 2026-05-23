@@ -10,9 +10,9 @@ I am not optimizing for a leaderboard score or a trading PnL claim. The value of
 
 The main evaluation path is locked to a boundary-purged chronological split. Train comes first, validation follows, test comes last, and overlapping sliding-window history is purged at train/validation and validation/test boundaries. In code, that policy is enforced through `chronological_split()` and `_enforce_non_overlap_boundary()`.
 
-Random split is not part of the main experiment. A no-purge chronological split is also not part of Step 4/5; if I add either later, it will be labeled as an auxiliary diagnostic rather than the primary result.
+Random split is not part of the main experiment. A no-purge chronological split is also not part of Step 4/5/6; if I add either later, it will be labeled as an auxiliary diagnostic rather than the primary result.
 
-Step 5 prediction-only baselines are complete on the locked Step 3 subset. Reconstruction and representation baselines are still pending, so the repo does not yet answer the reconstruction-transfer question directly.
+Step 6 reconstruction baselines are complete on the locked Step 3 subset. Reconstruction-prediction alignment is still pending, so the repo does not yet claim transfer from reconstruction quality to downstream prediction quality.
 
 Current data run:
 
@@ -39,6 +39,18 @@ Artifacts from Step 5 live under:
 
 - `results/step5_prediction_baselines/`
 - `figures/step5_prediction_baselines/`
+
+Step 6 reconstruction-only test snapshot:
+
+- Best test normalized-MSE model: `pca@128` (`normalized_mse=0.1912`, `normalized_mae=0.2396`, `original_mae=0.1360`)
+- Strong compression-constrained point (`latent_dim<=40`): `pca@32` (`normalized_mse=0.2924`)
+- Both best `pca` and best `mlp_ae` variants beat `last_snapshot_repeat` on test normalized-MSE
+- Error concentration for best model is much higher on volume-related dimensions than price dimensions
+
+Artifacts from Step 6 live under:
+
+- `results/step6_reconstruction_baselines/`
+- `figures/step6_reconstruction_baselines/`
 
 ## Scope
 

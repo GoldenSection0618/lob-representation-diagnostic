@@ -35,9 +35,27 @@ Step 5 has completed prediction-only baselines on the locked subset. These resul
 
 The best macro-F1 comes from logistic regression, but the log loss is weak. That is a practical signal: the model separates classes slightly better than the majority baseline, but its probabilities are not reliable.
 
+## Step 6 Reconstruction Snapshot
+
+Step 6 completed reconstruction-only baselines on the same locked split.
+
+| Model | latent_dim | Test Normalized MSE | Test Normalized MAE | Test Original MAE | Relative MSE vs Last Snapshot |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| pca | 128 | 0.1912 | 0.2396 | 0.1360 | 0.2885 |
+| pca | 32 | 0.2924 | 0.3148 | 0.1713 | 0.4413 |
+| mlp_ae | 32 | 0.4718 | 0.4478 | 0.2295 | 0.7120 |
+| last_snapshot_repeat | 40 | 0.6626 | 0.3563 | 0.1701 | 1.0000 |
+| train_mean_window | - | 1.0437 | 0.6121 | 0.3535 | 1.5750 |
+
+Observed Step 6 pattern:
+
+- PCA dominates reconstruction quality across tested latent dimensions.
+- Both best PCA and best MLP-AE improve over `last_snapshot_repeat` on normalized MSE.
+- For the best model, volume-side reconstruction error is materially larger than price-side reconstruction error.
+
 ## Next Comparison
 
-The next step is to train reconstruction baselines, extract representations, and attach prediction heads under the same split. I want the comparison to answer:
+The next step is Step 7 alignment analysis under the same split. I want the comparison to answer:
 
 - Does lower reconstruction error improve accuracy or macro-F1?
 - Are top-of-book errors more predictive of downstream failure than deeper-level errors?
@@ -85,7 +103,7 @@ The current evidence is intentionally narrow:
 - The external dataset is required locally and is not committed to the repo.
 - The active label is `trend5`; other horizons remain future sensitivity checks.
 - There is no multi-symbol, multi-date, or cross-regime robustness result yet.
-- Reconstruction baselines have not been run.
-- Reconstruction-prediction alignment is not claimed.
+- Step 6 runs reconstruction-only baselines; it does not include prediction-head training.
+- Reconstruction-prediction alignment is still not claimed.
 
-The next meaningful milestone is Step 6-level analysis after reconstruction baselines exist: compare reconstruction quality, prediction quality, and failure modes under the same locked protocol.
+The next meaningful milestone is Step 7: align per-sample reconstruction errors with downstream prediction outcomes under the same locked protocol.
