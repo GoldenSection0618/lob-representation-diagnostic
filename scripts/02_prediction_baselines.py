@@ -100,7 +100,10 @@ def _plot_primary_metrics(metrics_df: pd.DataFrame, fig_path: Path) -> None:
         plt.bar(x + (i - 1.5) * width, test_df[m].to_numpy(), width=width, label=m)
 
     plt.xticks(x, models, rotation=15)
-    plt.ylim(0, 1)
+    min_val = float(test_df[metrics].min().min())
+    lower = min(0.0, min_val - 0.05)
+    plt.ylim(lower, 1.0)
+    plt.axhline(0.0, linewidth=0.8)
     plt.ylabel("score")
     plt.title("Primary Metrics by Model (Test)")
     plt.legend()
