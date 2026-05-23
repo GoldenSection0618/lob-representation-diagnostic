@@ -22,6 +22,8 @@ Boundary-purged chronological split.
 - split_ratio: 70/15/15
 - sample_stride: 4
 - boundary purge: enabled and mandatory
+- current Step 3 split sizes: train=5600, val=1200, test=1152
+- current Step 3 boundary drops: 48 samples
 
 ## Excluded From Step 4
 

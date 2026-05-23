@@ -449,3 +449,52 @@ rm -rf results/step6_reconstruction_baselines
 rm -rf figures/step6_reconstruction_baselines
 rm -rf artifacts/step6_reconstruction_baselines
 ```
+
+## Step 3 Rerun: sample_stride=4 Main Subset
+
+I first ran the stride-4 Step 3 command with `--dry-run` as a preflight, then ran the same command without `--dry-run` because downstream Step 5/6 require `X.npy`, `y.npy`, and `samples.csv`.
+
+Dry-run command:
+
+```bash
+mamba run -n lob python scripts/01_prepare_data.py \
+  --input-csv ~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv \
+  --symbol sz000001 \
+  --output-dir data/processed/minimal_subset \
+  --window-len 100 \
+  --label-horizon 5 \
+  --threshold 0.0001 \
+  --split-ratio 70/15/15 \
+  --row-limit 50000 \
+  --max-samples 8000 \
+  --sample-stride 4 \
+  --dry-run
+```
+
+Generation command:
+
+```bash
+mamba run -n lob python scripts/01_prepare_data.py \
+  --input-csv ~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv \
+  --symbol sz000001 \
+  --output-dir data/processed/minimal_subset \
+  --window-len 100 \
+  --label-horizon 5 \
+  --threshold 0.0001 \
+  --split-ratio 70/15/15 \
+  --row-limit 50000 \
+  --max-samples 8000 \
+  --sample-stride 4
+```
+
+Actual stride-4 subset facts:
+
+- total samples after boundary purge: `7952`
+- split sizes: train=`5600`, val=`1200`, test=`1152`
+- `X` shape: `(7952, 100, 40)`
+- `y` shape: `(7952,)`
+- label row ranges: train `99..22495`, val `22595..27391`, test `27491..32095`
+- dropped boundary samples: `48`
+- boundary purge applied: `true`
+- train/val and val/test historical rows do not overlap
+- sample IDs are contiguous after final keep

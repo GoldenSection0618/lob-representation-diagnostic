@@ -102,6 +102,7 @@ Input and parameters:
 - Source fields: `BidPrice* / AskPrice* / BidVolume* / AskVolume*`
 - Output: `data/processed/minimal_subset/`
 - `window_len=100`
+- `sample_stride=4`
 - `label_horizon=5`
 - `threshold=0.0001`
 - `split_ratio=70/15/15`
@@ -111,13 +112,14 @@ Input and parameters:
 Output facts:
 
 - Usable rows after label trimming: `49990`
-- Final samples after boundary purge: `7802`
-- `X` shape: `(7802, 100, 40)`
-- `y` shape: `(7802,)`
-- Split sizes: `train=5600`, `val=1200`, `test=1002`
-- Train label rows: `99..5698`
-- Validation label rows: `5798..6997`
-- Test label rows: `7097..8098`
+- Final samples after boundary purge: `7952`
+- `X` shape: `(7952, 100, 40)`
+- `y` shape: `(7952,)`
+- Split sizes: `train=5600`, `val=1200`, `test=1152`
+- Dropped boundary samples: `48`
+- Train label rows: `99..22495`
+- Validation label rows: `22595..27391`
+- Test label rows: `27491..32095`
 
 Checks passed:
 

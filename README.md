@@ -12,7 +12,7 @@ The main evaluation path is locked to LOBench-style `sample_stride=4` window sam
 
 Random split is not part of the main experiment. A no-purge chronological split is also not part of Step 4/5/6; if I add either later, it will be labeled as an auxiliary diagnostic rather than the primary result.
 
-Step 6 reconstruction baselines are complete on the locked Step 3 subset. Reconstruction-prediction alignment is still pending, so the repo does not yet claim transfer from reconstruction quality to downstream prediction quality.
+Step 5 and Step 6 are being rerun on the stride-4 Step 3 subset. Reconstruction-prediction alignment is still pending, so the repo does not yet claim transfer from reconstruction quality to downstream prediction quality.
 
 Current data run:
 
@@ -21,34 +21,23 @@ Current data run:
 - Window: `100`
 - Feature width: `40`
 - Label: `trend5`
+- Sample stride: `4`
 - Threshold: `0.0001`
 - Split: `70/15/15`, boundary-purged chronological
-- Samples: `7802`
-- Shapes: `X=(7802, 100, 40)`, `y=(7802,)`
+- Samples: `7952`
+- Shapes: `X=(7952, 100, 40)`, `y=(7952,)`
+- Split sizes: `train=5600`, `val=1200`, `test=1152`
+- Boundary samples dropped: `48`
 - Data checks passed: feature contract, label contract, window alignment, chronological split, output safety
 
-Step 5 prediction-only test results:
-
-- `majority`: `macro_f1=0.2069`, `balanced_accuracy=0.3333`, `mcc=0.0000`, `log_loss=1.2228`
-- `logistic_regression`: `macro_f1=0.3338`, `balanced_accuracy=0.3504`, `mcc=0.0250`, `log_loss=9.2487`
-- `mlp`: `macro_f1=0.2760`, `balanced_accuracy=0.3535`, `mcc=0.0589`, `log_loss=1.7594`
-
-`logistic_regression` is the best test model by macro-F1, but its log loss is poor. I treat that as a useful warning: directional class separation and probability quality are not the same thing.
-The Step 5 selection policy is explicit: macro-F1 is primary for this imbalanced directional diagnostic, while `log_loss` is retained as the LOBench-compatible cross-entropy-style probability-quality metric. On test, `logistic_regression` is best by macro-F1 and `majority` is best by log loss.
+Step 5 prediction-only baselines are being rerun under the stride-4 main protocol. The older stride-1 prediction artifacts were removed and are no longer active evidence.
 
 Artifacts from Step 5 live under:
 
 - `results/step5_prediction_baselines/`
 - `figures/step5_prediction_baselines/`
 
-Step 6 reconstruction-only test snapshot:
-
-- Best test normalized-MSE model: `pca@128` (`normalized_mse=0.1912`, `normalized_mae=0.2396`, `original_mae=0.1360`)
-- Strong compression-constrained point (`latent_dim<=40`): `pca@32` (`normalized_mse=0.2924`)
-- Both best `pca` and best `mlp_ae` variants beat `last_snapshot_repeat` on test normalized-MSE
-- Error concentration for best model is much higher on volume-related dimensions than price dimensions
-- LOBench-compatible reconstruction metrics are exported in `lobench_compatible_reconstruction_metrics.csv`; on test, `pca@128` is also best by weighted MSE.
-- In Step 6, `original_mae` / `original_rmse` mean errors in Step 3 input feature space after inverse-transforming the Step 6 train-only scaler; they are not raw exchange order-flow scale.
+Step 6 reconstruction-only baselines are also being rerun under the stride-4 main protocol. Step 7 alignment has not been run yet.
 
 Artifacts from Step 6 live under:
 

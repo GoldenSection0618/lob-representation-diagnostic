@@ -18,45 +18,19 @@ The first controlled subset is:
 - Source: `~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv`
 - Input: `(N, 100, 40)`
 - Label: `trend5`
+- Sample stride: `4`
 - Split: boundary-purged chronological `70/15/15`
-- Samples: `7802`
+- Samples: `7952`
 
 The split is stricter than plain chronological evaluation because overlapping historical windows are removed at train/validation and validation/test boundaries. Random split is not part of the main experiment. No-purge chronological split is left for later ablation work.
 
 ## Baseline Snapshot
 
-Step 5 has completed prediction-only baselines on the locked subset. These results set a floor; they do not say anything yet about reconstruction quality or representation transfer.
-
-| Model | Accuracy | Balanced Accuracy | Macro-F1 | MCC | Log Loss |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| majority | 0.4501 | 0.3333 | 0.2069 | 0.0000 | 1.2228 |
-| logistic_regression | 0.4122 | 0.3504 | 0.3338 | 0.0250 | 9.2487 |
-| mlp | 0.4531 | 0.3535 | 0.2760 | 0.0589 | 1.7594 |
-
-The best macro-F1 comes from logistic regression, but the log loss is weak. That is a practical signal: the model separates classes slightly better than the majority baseline, but its probabilities are not reliable.
-For selection policy, macro-F1 is the primary metric for this imbalanced directional diagnostic, while log loss is retained as the LOBench-compatible cross-entropy-style probability-quality metric. On the test split, `logistic_regression` is best by macro-F1 and `majority` is best by log loss.
+Step 5 prediction-only baselines are being rerun under the stride-4 main protocol. The older stride-1 metrics were a dense-window pilot and are no longer active evidence.
 
 ## Step 6 Reconstruction Snapshot
 
-Step 6 completed reconstruction-only baselines on the same locked split.
-
-| Model | latent_dim | Test Normalized MSE | Test Normalized MAE | Test Original MAE | Relative MSE vs Last Snapshot |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| pca | 128 | 0.1912 | 0.2396 | 0.1360 | 0.2885 |
-| pca | 32 | 0.2924 | 0.3148 | 0.1713 | 0.4413 |
-| mlp_ae | 32 | 0.4718 | 0.4478 | 0.2295 | 0.7120 |
-| last_snapshot_repeat | 40 | 0.6626 | 0.3563 | 0.1701 | 1.0000 |
-| train_mean_window | - | 1.0437 | 0.6121 | 0.3535 | 1.5750 |
-
-Observed Step 6 pattern:
-
-- PCA dominates reconstruction quality across tested latent dimensions.
-- Both best PCA and best MLP-AE improve over `last_snapshot_repeat` on normalized MSE.
-- For the best model, volume-side reconstruction error is materially larger than price-side reconstruction error.
-- Step 6 artifacts use `model_variant` as the canonical variant key, while keeping `model` (family) and `latent_dim` (numeric compression dimension) as separate fields.
-- Step 6 now also exports `lobench_compatible_reconstruction_metrics.csv`, with LOBench-style MSE/MAE, price/volume, weighted price/volume, weighted MSE, regularization, and all-loss metrics in normalized Step 6 space.
-- Imbalance MAE is now validity-gated: it is reported only when reconstructed/reference volumes satisfy non-negative and denominator checks; otherwise Step 7 should prefer volume-sum and volume-difference diagnostics.
-- `original_mae` / `original_rmse` are measured in Step 3 input feature space after inverse-transforming the Step 6 scaler, not in raw exchange order-flow scale.
+Step 6 reconstruction-only baselines are also being rerun under the stride-4 main protocol. Step 6 will keep `model_variant` as the canonical reconstruction variant key and will continue exporting LOBench-compatible reconstruction metrics after rerun.
 
 ## Next Comparison
 
