@@ -377,8 +377,8 @@ Protocol scope unchanged:
 
 I fixed per-sample directional semantics in `results/step5_prediction_baselines/per_sample_predictions.csv`.
 
-- `direction_correct_non_neutral` is now defined only when `y_true in {0,2}`.
-- Neutral samples now store this field as null instead of false.
+- `direction_correct_non_neutral` is encoded as 1.0/0.0 when `y_true in {0,2}`.
+- Neutral samples store this field as null instead of false.
 - `opposite_direction_error` remains boolean, with neutral rows as false.
 
 This avoids accidental denominator leakage if Step 7 aggregates directional correctness directly from the per-sample table.

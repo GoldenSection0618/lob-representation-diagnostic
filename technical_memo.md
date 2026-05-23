@@ -90,6 +90,7 @@ Directional diagnostics:
 - Non-neutral recall
 - Non-neutral precision
 - Directional accuracy on true non-neutral samples
+- `direction_correct_non_neutral` is encoded as 1.0/0.0 for true non-neutral samples and null for neutral samples.
 - Up/down macro-F1
 - Opposite-direction rate
 
@@ -110,4 +111,4 @@ The current evidence is intentionally narrow:
 - Step 6 runs reconstruction-only baselines; it does not include prediction-head training.
 - Reconstruction-prediction alignment is still not claimed.
 
-The next meaningful milestone is Step 7: align per-sample reconstruction errors with downstream prediction outcomes under the same locked protocol.
+The next meaningful milestone is Step 7: align per-sample reconstruction errors with downstream prediction outcomes under the same locked protocol. Step 7 should treat `direction_correct_non_neutral` as numeric 1.0/0.0 for true non-neutral samples and null for neutral samples.
