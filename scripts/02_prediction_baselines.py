@@ -91,9 +91,12 @@ def _build_per_sample_prediction_frame(
     out["is_non_neutral_true"] = np.isin(out["y_true"].to_numpy(), [0, 2])
     out["is_non_neutral_pred"] = np.isin(out["y_pred"].to_numpy(), [0, 2])
 
-    out["direction_correct_non_neutral"] = out["is_non_neutral_true"].to_numpy() & (
-        out["y_true"].to_numpy() == out["y_pred"].to_numpy()
+    direction_correct = np.where(
+        out["is_non_neutral_true"].to_numpy(),
+        out["y_true"].to_numpy() == out["y_pred"].to_numpy(),
+        np.nan,
     )
+    out["direction_correct_non_neutral"] = direction_correct
     out["opposite_direction_error"] = (
         ((out["y_true"].to_numpy() == 0) & (out["y_pred"].to_numpy() == 2))
         | ((out["y_true"].to_numpy() == 2) & (out["y_pred"].to_numpy() == 0))
@@ -521,6 +524,10 @@ def main() -> int:
     lines.append("- Step 5 does not use randomized split protocols.")
     lines.append("- Step 5 does not use plain non-purged chronological split.")
     lines.append("- Per-sample prediction outputs are saved for Step 7 alignment in `per_sample_predictions.csv`.")
+    lines.append(
+        "- `direction_correct_non_neutral` is defined only for true non-neutral samples; "
+        "neutral samples are stored as null to avoid denominator leakage."
+    )
 
     (output_dir / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
