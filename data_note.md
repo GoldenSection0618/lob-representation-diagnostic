@@ -83,14 +83,19 @@ The first downstream run uses `trend5`. `trend1/3/7/10` can be added later for s
 
 ## Chronological Split Policy
 
-I do not use random split in the main experiment. LOB windows are highly time-dependent; random split can put neighboring windows into train and test at the same time. That usually makes metrics look better while leaking temporal context.
+The main experiment uses boundary-purged chronological split.
+
+Boundary purge is mandatory for the current main protocol, and the Step 3 subset already applies it.
+
+I do not use random split in the main workflow. LOB windows are highly time-dependent and heavily overlapping; random split can place near-neighbor windows into train and test and leak temporal context.
 
 Main rules:
 
 - Train, validation, and test must preserve time order.
-- The three segments must not overlap.
-- Any random-split result must be labeled as an auxiliary baseline only.
-- Boundary windows should be purged so adjacent split boundaries do not share historical rows.
+- The three segments must not overlap in sample IDs or label rows.
+- Boundary windows must be purged so adjacent split boundaries do not share historical rows.
+- Any random-split result must be labeled as an auxiliary diagnostic only.
+- No-purge chronological split is intentionally postponed because it is an ablation, not required for the current PoW main delivery.
 
 The current default split ratio is `70/15/15`.
 
@@ -138,5 +143,5 @@ The important part is not the sample count. The important part is that field map
 ## Open Decisions
 
 - Whether future fixed subsets should keep using `row_limit + max_samples`, or move to explicit date ranges.
-- Whether boundary purge should always be mandatory, or configurable with explicit leakage-risk reporting.
+- For the current main protocol, boundary purge is mandatory. Making it configurable is postponed to future ablation work.
 - For multi-symbol experiments, whether normalization and splitting should happen per symbol or through a broader cross-symbol design.
