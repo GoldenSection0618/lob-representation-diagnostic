@@ -82,6 +82,12 @@ def _safe_label(model: str, latent_dim: int | None) -> str:
     return f"{model}@{latent_dim}"
 
 
+def _model_variant(model: str, latent_dim: int | None) -> str:
+    if latent_dim is None:
+        return model
+    return f"{model}@{int(latent_dim)}"
+
+
 def _select_best_model_row(test_rows: pd.DataFrame) -> pd.Series:
     candidates = test_rows.copy()
     candidates = candidates.sort_values(
@@ -264,6 +270,7 @@ def _model_eval(
     num_parameters: int,
     train_seconds: float,
 ) -> Dict[str, object]:
+    variant = _model_variant(model_name, latent_dim)
     metrics_rows: List[Dict[str, object]] = []
     feature_rows: List[Dict[str, object]] = []
     level_rows: List[Dict[str, object]] = []
@@ -306,6 +313,7 @@ def _model_eval(
         metrics_rows.append(
             {
                 "model": model_name,
+                "model_variant": variant,
                 "latent_dim": latent_dim,
                 "split": split,
                 **primary,
@@ -318,7 +326,9 @@ def _model_eval(
             X_true_original=X_orig,
             X_hat_original=X_hat_orig,
         ):
-            feature_rows.append({"model": model_name, "latent_dim": latent_dim, "split": split, **row})
+            feature_rows.append(
+                {"model": model_name, "model_variant": variant, "latent_dim": latent_dim, "split": split, **row}
+            )
 
         for row in compute_level_wise_errors(
             X_true_scaled=X_true_scaled,
@@ -326,13 +336,19 @@ def _model_eval(
             X_true_original=X_orig,
             X_hat_original=X_hat_orig,
         ):
-            level_rows.append({"model": model_name, "latent_dim": latent_dim, "split": split, **row})
+            level_rows.append(
+                {"model": model_name, "model_variant": variant, "latent_dim": latent_dim, "split": split, **row}
+            )
 
         for row in compute_temporal_errors(X_true_scaled=X_true_scaled, X_hat_scaled=X_hat_scaled):
-            temporal_rows.append({"model": model_name, "latent_dim": latent_dim, "split": split, **row})
+            temporal_rows.append(
+                {"model": model_name, "model_variant": variant, "latent_dim": latent_dim, "split": split, **row}
+            )
 
         derived = compute_derived_lob_errors(X_true_original=X_orig, X_hat_original=X_hat_orig)
-        derived_rows.append({"model": model_name, "latent_dim": latent_dim, "split": split, **derived})
+        derived_rows.append(
+            {"model": model_name, "model_variant": variant, "latent_dim": latent_dim, "split": split, **derived}
+        )
 
         per_sample = compute_per_sample_errors(
             X_true_scaled_flat=X_true_scaled_flat,
@@ -347,6 +363,7 @@ def _model_eval(
         sample_table["split"] = split
         sample_table["y_true"] = y_split.astype(int)
         sample_table["model"] = model_name
+        sample_table["model_variant"] = variant
         sample_table["latent_dim"] = latent_dim
         for k, arr in per_sample.items():
             sample_table[k] = arr
