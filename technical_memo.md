@@ -56,9 +56,20 @@ Reconstruction metrics:
 Prediction metrics:
 
 - Accuracy
+- Balanced accuracy
 - Macro-F1
-- Per-class precision / recall
-- Confusion matrix
+- MCC
+- Log loss
+- Per-class precision / recall / F1
+- Raw and row-normalized confusion matrix
+
+Directional diagnostics:
+
+- Non-neutral recall
+- Non-neutral precision
+- Directional accuracy on true non-neutral samples
+- Up/down macro-F1
+- Opposite-direction rate
 
 Diagnostic cuts:
 
