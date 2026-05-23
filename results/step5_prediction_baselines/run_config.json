@@ -1,0 +1,88 @@
+{
+  "subset_dir": "data/processed/minimal_subset",
+  "output_dir": "results/step5_prediction_baselines",
+  "figures_dir": "figures/step5_prediction_baselines",
+  "seed": 42,
+  "selected_models": [
+    "majority",
+    "logistic_regression",
+    "mlp"
+  ],
+  "model_hyperparameters": {
+    "majority": {},
+    "logistic_regression": {
+      "max_iter": 2000,
+      "class_weight": "balanced"
+    },
+    "mlp": {
+      "max_epochs": 100,
+      "batch_size": 256,
+      "patience": 10,
+      "hidden": [
+        256,
+        64
+      ],
+      "dropout": 0.2,
+      "class_weight": "train_distribution_inverse_freq"
+    }
+  },
+  "class_order": [
+    0,
+    1,
+    2
+  ],
+  "class_names": {
+    "0": "down",
+    "1": "neutral",
+    "2": "up"
+  },
+  "timestamp": "2026-05-23T08:17:44.877088Z",
+  "step3_metadata_summary": {
+    "raw_rows": 50000,
+    "usable_rows_after_label_trim": 49990,
+    "total_samples": 7802,
+    "X_shape": [
+      7802,
+      100,
+      40
+    ],
+    "y_shape": [
+      7802
+    ],
+    "class_distribution_label_col": {
+      "0": 7680,
+      "1": 34246,
+      "2": 8064
+    },
+    "split_ranges": {
+      "train": {
+        "sample_count": 5600,
+        "sample_id_min": 0,
+        "sample_id_max": 5599,
+        "label_row_min": 99,
+        "label_row_max": 5698,
+        "row_start_min": 0,
+        "row_end_max": 5698
+      },
+      "val": {
+        "sample_count": 1200,
+        "sample_id_min": 5600,
+        "sample_id_max": 6799,
+        "label_row_min": 5798,
+        "label_row_max": 6997,
+        "row_start_min": 5699,
+        "row_end_max": 6997
+      },
+      "test": {
+        "sample_count": 1002,
+        "sample_id_min": 6800,
+        "sample_id_max": 7801,
+        "label_row_min": 7097,
+        "label_row_max": 8098,
+        "row_start_min": 6998,
+        "row_end_max": 8098
+      }
+    }
+  },
+  "step4_protocol_note": "boundary-purged chronological split"
+}
