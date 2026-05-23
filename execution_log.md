@@ -576,7 +576,7 @@ Validation checks:
 - `model_variant` remains the canonical reconstruction variant key.
 - `run_config.json` includes `imbalance_gate`, `metric_space_note`, Step 4 protocol note, and Step 3 metadata summary.
 - Step 6 remains reconstruction-only and does not train prediction heads.
-- No `artifacts/` files were staged.
+- No `artifacts/` files were committed in the Step 6 results commit; latent artifacts were refreshed later under the same stride-4 protocol.
 
 ## sample_stride=4 Protocol Revision Commits
 
@@ -588,6 +588,7 @@ Commits made for the main protocol revision:
 - `58c5c1e` - `step3: expose stride in metadata summary`
 - `67064d5` - `step5: rerun prediction baselines with sample_stride4`
 - `9e25234` - `step6: rerun reconstruction baselines with sample_stride4`
+- `3b1fb9c` - `step6: refresh stride4 latent artifacts`
 
 ## Step 6 Latent Artifact Refresh
 

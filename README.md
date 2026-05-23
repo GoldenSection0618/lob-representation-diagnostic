@@ -12,7 +12,7 @@ The main evaluation path is locked to LOBench-style `sample_stride=4` window sam
 
 Random split is not part of the main experiment. A no-purge chronological split is also not part of Step 4/5/6; if I add either later, it will be labeled as an auxiliary diagnostic rather than the primary result.
 
-Step 5 and Step 6 are being rerun on the stride-4 Step 3 subset. Reconstruction-prediction alignment is still pending, so the repo does not yet claim transfer from reconstruction quality to downstream prediction quality.
+Step 3, Step 5, and Step 6 have been rerun on the stride-4 main protocol. Reconstruction-prediction alignment is still pending, so the repo does not yet claim transfer from reconstruction quality to downstream prediction quality.
 
 Current data run:
 
@@ -55,6 +55,7 @@ Artifacts from Step 6 live under:
 
 - `results/step6_reconstruction_baselines/`
 - `figures/step6_reconstruction_baselines/`
+- local latent arrays: `artifacts/step6_reconstruction_baselines/latents/` (ignored, not committed)
 
 ## Scope
 
