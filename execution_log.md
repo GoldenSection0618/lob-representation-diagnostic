@@ -427,3 +427,25 @@ Updated plotting logic:
 - Lower subplot: `top1_volume_sum_mae`, `top5_volume_sum_mae`, `top1_volume_diff_mae`, `top5_volume_diff_mae`
 
 This is a visualization-only patch; it does not change Step 6 reconstruction metrics.
+
+## Protocol Revision: Switch Main Sampling from stride=1 to stride=4
+
+I revised the main sampling protocol from dense stride-1 pilot windows to LOBench-style `sample_stride=4`.
+
+- The earlier stride-1 run was a dense-window pilot, not the final main protocol.
+- The main protocol is now `sample_stride=4` plus the existing boundary-purged chronological split.
+- Reason: reduce near-duplicate overlapping windows and align with upstream LOBench-style A-share sampling convention.
+- Boundary-purged chronological splitting remains unchanged.
+- Random split and no-purge chronological split remain excluded from the main protocol.
+- Old Step 3/5/6 generated artifacts were removed before the stride-4 rerun.
+
+Removed generated directories:
+
+```bash
+rm -rf data/processed/minimal_subset
+rm -rf results/step5_prediction_baselines
+rm -rf figures/step5_prediction_baselines
+rm -rf results/step6_reconstruction_baselines
+rm -rf figures/step6_reconstruction_baselines
+rm -rf artifacts/step6_reconstruction_baselines
+```
