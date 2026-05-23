@@ -26,4 +26,3 @@
 - Step 6 does not train prediction heads.
 - Step 6 does not run reconstruction-prediction alignment.
 - Step 7 will use per_sample_reconstruction_errors.csv for alignment analysis.
-- Step 6 artifacts use `model_variant` as the unique model-configuration key while keeping `model` as the family key.
