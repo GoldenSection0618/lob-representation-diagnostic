@@ -577,3 +577,14 @@ Validation checks:
 - `run_config.json` includes `imbalance_gate`, `metric_space_note`, Step 4 protocol note, and Step 3 metadata summary.
 - Step 6 remains reconstruction-only and does not train prediction heads.
 - No `artifacts/` files were staged.
+
+## sample_stride=4 Protocol Revision Commits
+
+Commits made for the main protocol revision:
+
+- `8bb48b7` - `step3: add stride-aware window sampling`
+- `c50b4a4` - `chore: remove stride1 generated artifacts`
+- `a6da617` - `step3: rerun subset with sample_stride4`
+- `58c5c1e` - `step3: expose stride in metadata summary`
+- `67064d5` - `step5: rerun prediction baselines with sample_stride4`
+- `9e25234` - `step6: rerun reconstruction baselines with sample_stride4`
