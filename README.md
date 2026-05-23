@@ -10,9 +10,9 @@ I am not optimizing for a leaderboard score or a trading PnL claim. The value of
 
 The main evaluation path is locked to LOBench-style `sample_stride=4` window sampling plus a boundary-purged chronological split. Train comes first, validation follows, test comes last, and overlapping sliding-window history is purged at train/validation and validation/test boundaries. In code, that policy is enforced through `build_sliding_windows()`, `chronological_split()`, and `_enforce_non_overlap_boundary()`.
 
-Random split is not part of the main experiment. A no-purge chronological split is also not part of Step 4/5/6; if I add either later, it will be labeled as an auxiliary diagnostic rather than the primary result.
+Random split is not part of the main experiment. A no-purge chronological split is also not part of Step 4/5/6/7; if I add either later, it will be labeled as an auxiliary diagnostic rather than the primary result.
 
-Step 3, Step 5, and Step 6 have been rerun on the stride-4 main protocol. Reconstruction-prediction alignment is still pending, so the repo does not yet claim transfer from reconstruction quality to downstream prediction quality.
+Step 3, Step 5, Step 6, and Step 7 have been rerun on the stride-4 main protocol. Step 7 now provides the first controlled reconstruction-prediction alignment result for this one-symbol, one-horizon subset.
 
 Current data run:
 
@@ -49,13 +49,28 @@ Step 6 reconstruction-only test snapshot:
 - Strong compression-constrained point (`latent_dim<=40`): `pca@32` (`normalized_mse=0.4245`)
 - Both best `pca` and best `mlp_ae` variants beat `last_snapshot_repeat` on test normalized-MSE
 - LOBench-compatible reconstruction metrics are exported in `lobench_compatible_reconstruction_metrics.csv`; on test, `pca@128` is also best by weighted MSE.
-- Step 7 alignment has not been run yet.
+- Step 6 saved local latent arrays for Step 7 under `artifacts/step6_reconstruction_baselines/latents/` (ignored, not committed).
 
 Artifacts from Step 6 live under:
 
 - `results/step6_reconstruction_baselines/`
 - `figures/step6_reconstruction_baselines/`
 - local latent arrays: `artifacts/step6_reconstruction_baselines/latents/` (ignored, not committed)
+
+Step 7 reconstruction-prediction alignment snapshot:
+
+- Join contract: `passed`; expected and actual joined rows are both `70560`.
+- Best Step 5 raw-window baseline by test macro-F1: `logistic_regression` (`0.3972`).
+- Best frozen-latent logistic head by test macro-F1: `last_snapshot_repeat@40` (`0.4355`, `balanced_accuracy=0.5509`, `mcc=0.2579`).
+- Best reconstruction variant by test normalized MSE: `pca@128` (`0.1838`).
+- The reconstruction-best and frozen-head prediction-best variants are not the same.
+- Across the nine frozen-latent variants, Spearman(`test_recon_normalized_mse`, `test_pred_macro_f1`) is `-0.2000`; this is descriptive only and does not support treating overall reconstruction MSE as a reliable downstream proxy.
+- For the Step 5 `logistic_regression` sample-level failure view, `spread_mae` has the highest mean AUROC for incorrect prediction (`0.5204`), followed by `top_of_book_mse` (`0.5035`); these associations are weak and diagnostic, not causal claims.
+
+Artifacts from Step 7 live under:
+
+- `results/step7_alignment/`
+- `figures/step7_alignment/`
 
 ## Scope
 

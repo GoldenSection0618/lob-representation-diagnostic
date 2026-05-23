@@ -620,3 +620,109 @@ Validation:
 - The train-mean baseline has no latent representation, so its three manifest entries remain `latents_saved=false`.
 - No `artifacts/` files were committed.
 - Step 6 best reconstruction remains `pca@128` with unchanged reconstruction metric values; rerun differences in `metrics.csv` and `model_manifest.json` are timing fields.
+
+## Step 7: Reconstruction-Prediction Alignment
+
+Command:
+
+```bash
+mamba run -n lob python scripts/04_alignment_analysis.py \
+  --step5-dir results/step5_prediction_baselines \
+  --step6-dir results/step6_reconstruction_baselines \
+  --latent-artifact-dir artifacts/step6_reconstruction_baselines/latents \
+  --output-dir results/step7_alignment \
+  --figures-dir figures/step7_alignment \
+  --seed 42 \
+  --head-c-grid 0.01,0.1,1.0,10.0 \
+  --primary-prediction-model-for-sample-analysis logistic_regression \
+  --selection-metric macro_f1
+```
+
+Inputs consumed:
+
+- `results/step5_prediction_baselines/metrics.csv`
+- `results/step5_prediction_baselines/per_sample_predictions.csv`
+- `results/step5_prediction_baselines/run_config.json`
+- `results/step6_reconstruction_baselines/metrics.csv`
+- `results/step6_reconstruction_baselines/lobench_compatible_reconstruction_metrics.csv`
+- `results/step6_reconstruction_baselines/per_sample_reconstruction_errors.csv`
+- `results/step6_reconstruction_baselines/latent_manifest.json`
+- local latent arrays under `artifacts/step6_reconstruction_baselines/latents/`
+
+Join contract:
+
+- status: `passed`
+- expected joined rows: `70560`
+- actual joined rows: `70560`
+- duplicate key count: `0`
+- Step 5 predictions covered val/test only.
+- Step 6 reconstruction diagnostics covered train/val/test; Step 7 sample-level alignment used val/test only.
+
+Latent transfer setup:
+
+- latent variants used: `last_snapshot_repeat@40`, `pca@8`, `pca@16`, `pca@32`, `pca@64`, `pca@128`, `mlp_ae@16`, `mlp_ae@32`, `mlp_ae@64`
+- head model: logistic regression with train-only latent `StandardScaler`
+- class weighting: `balanced`
+- C grid: `0.01, 0.1, 1.0, 10.0`
+- selection: validation macro-F1, tie-broken by validation MCC then validation log loss
+- reconstruction encoders were loaded only through saved latent arrays and were not retrained
+
+Best latent-head test result:
+
+- best variant: `last_snapshot_repeat@40`
+- selected C: `10.0`
+- test macro-F1: `0.435540`
+- test balanced accuracy: `0.550928`
+- test MCC: `0.257922`
+- test log loss: `1.074270`
+- best Step 5 raw-window baseline by test macro-F1: `logistic_regression` (`0.397216`)
+- frozen latent head beat the best raw-window baseline by test macro-F1: `true`
+
+Reconstruction-prediction rank result:
+
+- best test reconstruction normalized-MSE variant: `pca@128` (`0.183824`)
+- best test frozen-head macro-F1 variant: `last_snapshot_repeat@40` (`0.435540`)
+- same variant: `false`
+- Spearman(`test_recon_normalized_mse`, `test_pred_macro_f1`): `-0.200000`
+- Spearman(`test_recon_last_step_mse`, `test_pred_macro_f1`): `-0.733333`
+- These correlations are descriptive only because there are only nine frozen-latent variants.
+
+Sample-level failure diagnostic snapshot:
+
+- primary sample-analysis prediction model: `logistic_regression`
+- highest mean AUROC for incorrect prediction on test: `spread_mae` (`0.520404`)
+- `top_of_book_mse` mean AUROC for incorrect prediction on test: `0.503453`
+- `normalized_mse` mean AUROC for incorrect prediction on test: `0.474387`
+- This does not support using overall reconstruction MSE alone as the downstream prediction proxy.
+
+Generated result files:
+
+- `results/step7_alignment/join_contract.json`
+- `results/step7_alignment/sample_alignment_panel.csv`
+- `results/step7_alignment/sample_diagnostic_association.csv`
+- `results/step7_alignment/error_quantile_response.csv`
+- `results/step7_alignment/failure_mode_error_delta.csv`
+- `results/step7_alignment/latent_head_metrics.csv`
+- `results/step7_alignment/latent_head_predictions.csv`
+- `results/step7_alignment/transfer_baseline_comparison.csv`
+- `results/step7_alignment/model_level_rank_alignment.csv`
+- `results/step7_alignment/model_level_correlations.csv`
+- `results/step7_alignment/run_config.json`
+- `results/step7_alignment/summary.md`
+
+Generated figures:
+
+- `figures/step7_alignment/transfer_vs_raw_baselines.png`
+- `figures/step7_alignment/latent_head_primary_metrics.png`
+- `figures/step7_alignment/reconstruction_prediction_rank_alignment.png`
+- `figures/step7_alignment/compression_prediction_tradeoff.png`
+- `figures/step7_alignment/diagnostic_outcome_association_heatmap.png`
+- `figures/step7_alignment/error_quantile_failure_curve.png`
+
+Scope guard:
+
+- Step 7 uses the locked stride-4 boundary-purged chronological protocol.
+- No random split or no-purge split was added.
+- No Step 3/4/5/6 outputs were regenerated for Step 7.
+- No reconstruction encoders were retrained.
+- Evidence remains limited to `sz000001`, `trend5`, and this stride-4 subset.

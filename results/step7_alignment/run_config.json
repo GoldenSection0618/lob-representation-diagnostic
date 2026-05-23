@@ -1,0 +1,87 @@
+{
+  "step": "step7_alignment",
+  "sample_stride": 4,
+  "split_protocol": "boundary-purged chronological",
+  "step5_dir": "results/step5_prediction_baselines",
+  "step6_dir": "results/step6_reconstruction_baselines",
+  "latent_artifact_dir": "artifacts/step6_reconstruction_baselines/latents",
+  "output_dir": "results/step7_alignment",
+  "figures_dir": "figures/step7_alignment",
+  "seed": 42,
+  "prediction_models": [
+    "logistic_regression",
+    "majority",
+    "mlp"
+  ],
+  "reconstruction_variants": [
+    "last_snapshot_repeat@40",
+    "mlp_ae@16",
+    "mlp_ae@32",
+    "mlp_ae@64",
+    "pca@128",
+    "pca@16",
+    "pca@32",
+    "pca@64",
+    "pca@8",
+    "train_mean_window"
+  ],
+  "latent_head_variants": [
+    "last_snapshot_repeat@40",
+    "mlp_ae@16",
+    "mlp_ae@32",
+    "mlp_ae@64",
+    "pca@128",
+    "pca@16",
+    "pca@32",
+    "pca@64",
+    "pca@8"
+  ],
+  "head_model": "logistic_regression",
+  "head_c_grid": [
+    0.01,
+    0.1,
+    1.0,
+    10.0
+  ],
+  "head_selection_metric": "macro_f1",
+  "primary_prediction_model_for_sample_analysis": "logistic_regression",
+  "join_keys": [
+    "sample_id",
+    "split",
+    "y_true"
+  ],
+  "sample_level_diagnostics": [
+    "normalized_mse",
+    "normalized_mae",
+    "top_of_book_mse",
+    "last_step_mse",
+    "midprice_mae",
+    "spread_mae",
+    "top1_volume_sum_mae",
+    "top5_volume_sum_mae",
+    "top1_volume_diff_mae",
+    "top5_volume_diff_mae"
+  ],
+  "sample_level_outcomes": [
+    "correct",
+    "confidence",
+    "proba_true",
+    "opposite_direction_error",
+    "direction_correct_non_neutral"
+  ],
+  "rank_alignment_metrics": [
+    "test_recon_normalized_mse",
+    "test_recon_top_of_book_mse",
+    "test_lobench_weighted_mse_loss",
+    "test_pred_macro_f1",
+    "test_pred_mcc"
+  ],
+  "cliffs_delta_policy": "exact unless a group exceeds 5000 rows; then deterministic capped sample with seed",
+  "notes": [
+    "no random split",
+    "no no-purge split",
+    "reconstruction encoders are frozen",
+    "Step 7 does not retrain reconstruction models",
+    "evidence limited to sz000001 trend5 stride-4 subset"
+  ]
+}

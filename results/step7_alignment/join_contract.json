@@ -1,0 +1,38 @@
+{
+  "step3_total_samples": 7952,
+  "step3_sample_stride": 4,
+  "step5_prediction_rows": 7056,
+  "step6_reconstruction_rows": 79520,
+  "expected_prediction_rows": 7056,
+  "expected_reconstruction_rows": 79520,
+  "expected_joined_rows": 70560,
+  "actual_joined_rows": 70560,
+  "join_keys": [
+    "sample_id",
+    "split",
+    "y_true"
+  ],
+  "sample_id_match": true,
+  "label_row_match": true,
+  "y_true_match": true,
+  "split_match": true,
+  "duplicate_key_count": 0,
+  "prediction_models": [
+    "logistic_regression",
+    "majority",
+    "mlp"
+  ],
+  "reconstruction_variants": [
+    "last_snapshot_repeat@40",
+    "mlp_ae@16",
+    "mlp_ae@32",
+    "mlp_ae@64",
+    "pca@128",
+    "pca@16",
+    "pca@32",
+    "pca@64",
+    "pca@8",
+    "train_mean_window"
+  ],
+  "status": "passed"
+}

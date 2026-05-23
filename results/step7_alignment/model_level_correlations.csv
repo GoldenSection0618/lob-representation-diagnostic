@@ -1,0 +1,6 @@
+x_metric,y_metric,n_variants,spearman_r,note
+test_recon_normalized_mse,test_pred_macro_f1,9,-0.19999999999999998,descriptive only; reconstruction variant count is small
+test_recon_top_of_book_mse,test_pred_macro_f1,9,-0.09999999999999999,descriptive only; reconstruction variant count is small
+test_recon_last_step_mse,test_pred_macro_f1,9,-0.7333333333333334,descriptive only; reconstruction variant count is small
+test_lobench_weighted_mse_loss,test_pred_macro_f1,9,-0.09999999999999999,descriptive only; reconstruction variant count is small
+test_lobench_weighted_mse_loss,test_pred_mcc,9,-0.2333333333333333,descriptive only; reconstruction variant count is small

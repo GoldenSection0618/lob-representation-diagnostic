@@ -58,16 +58,45 @@ Observed Step 6 pattern:
 - Imbalance MAE is validity-gated; top1/top5 imbalance validity remains below threshold for the best model, so Step 7 should prefer volume-sum and volume-difference diagnostics.
 - `original_mae` / `original_rmse` are measured in Step 3 input feature space after inverse-transforming the Step 6 scaler, not in raw exchange order-flow scale.
 
-## Next Comparison
+## Step 7 Alignment Results
 
-The next step is Step 7 alignment analysis under the same split. I want the comparison to answer:
+Step 7 completed reconstruction-prediction alignment under the same stride-4 boundary-purged chronological protocol. It keeps two evidence chains separate: sample-level difficulty alignment and frozen-latent transfer.
 
-- Does lower reconstruction error improve accuracy or macro-F1?
-- Are top-of-book errors more predictive of downstream failure than deeper-level errors?
-- Do spread widening, higher volatility, or weak-trend periods break the representation first?
-- Does any representation justify its latency or compression cost?
-- Step 7 now has both interfaces needed for sample-level alignment: `per_sample_reconstruction_errors.csv` (Step 6) and `per_sample_predictions.csv` (Step 5).
-- Step 7 should rename Step 5 `model` to `prediction_model` and Step 6 `model_variant` to `reconstruction_variant`; the sample-level join key is `sample_id + split`.
+Join contract:
+
+- Step 5 prediction rows: `7056`
+- Step 6 reconstruction rows: `79520`
+- Expected joined rows: `70560`
+- Actual joined rows: `70560`
+- Duplicate `sample_id + split + prediction_model + reconstruction_variant` rows: `0`
+- Status: `passed`
+
+Frozen-latent transfer leaderboard on the test split:
+
+| Source | Variant | Test Macro-F1 | Balanced Accuracy | MCC | Log Loss |
+| --- | --- | ---: | ---: | ---: | ---: |
+| frozen latent head | last_snapshot_repeat@40 | 0.4355 | 0.5509 | 0.2579 | 1.0743 |
+| raw window baseline | logistic_regression | 0.3972 | 0.4098 | 0.1007 | 4.1624 |
+| raw window baseline | mlp | 0.3816 | 0.4513 | 0.1624 | 1.2767 |
+| frozen latent head | pca@128 | 0.3624 | 0.4143 | 0.1281 | 1.2174 |
+| frozen latent head | pca@32 | 0.3619 | 0.4085 | 0.1200 | 1.1262 |
+| raw window baseline | majority | 0.2612 | 0.3333 | 0.0000 | 0.8980 |
+
+The best frozen latent head beats the best Step 5 raw-window baseline by test macro-F1 in this controlled run. That does not imply a general SOTA claim; the result is limited to `sz000001`, `trend5`, and this stride-4 subset.
+
+Rank alignment:
+
+| Variant | Test Recon MSE | Test Macro-F1 | Recon Rank | Prediction Rank | Interpretation |
+| --- | ---: | ---: | ---: | ---: | --- |
+| pca@128 | 0.1838 | 0.3624 | 1 | 2 | aligned |
+| pca@64 | 0.2803 | 0.3505 | 2 | 6 | better reconstruction than prediction |
+| pca@32 | 0.4245 | 0.3619 | 3 | 3 | aligned |
+| mlp_ae@64 | 0.4251 | 0.3417 | 4 | 7 | better reconstruction than prediction |
+| last_snapshot_repeat@40 | 1.8321 | 0.4355 | 9 | 1 | better prediction than reconstruction |
+
+The reconstruction-best variant (`pca@128`) and frozen-head prediction-best variant (`last_snapshot_repeat@40`) do not match. Across nine frozen-latent variants, Spearman(`test_recon_normalized_mse`, `test_pred_macro_f1`) is `-0.2000`; Spearman(`test_recon_last_step_mse`, `test_pred_macro_f1`) is stronger at `-0.7333`, but the variant count is too small for significance claims. In this run, overall reconstruction MSE is not a reliable standalone proxy for downstream trend prediction.
+
+Sample-level failure diagnostics for the Step 5 `logistic_regression` predictor are weak but informative. For incorrect prediction on the test split, mean AUROC by reconstruction diagnostic is highest for `spread_mae` (`0.5204`), then `top_of_book_mse` (`0.5035`), while `normalized_mse` is below random-direction discrimination (`0.4744`). This points away from using aggregate reconstruction error alone and toward local book-state diagnostics in Step 7 interpretation.
 
 ## Metrics
 
@@ -113,6 +142,7 @@ The current evidence is intentionally narrow:
 - The active label is `trend5`; other horizons remain future sensitivity checks.
 - There is no multi-symbol, multi-date, or cross-regime robustness result yet.
 - Step 6 runs reconstruction-only baselines; it does not include prediction-head training.
-- Reconstruction-prediction alignment is still not claimed.
+- Step 7 trains only simple logistic heads on frozen saved latents; it does not retrain reconstruction encoders.
+- Step 7 does not establish cross-symbol, cross-horizon, or trading-PnL generality.
 
-The next meaningful milestone is Step 7: align per-sample reconstruction errors with downstream prediction outcomes under the same locked protocol. Step 7 should treat `direction_correct_non_neutral` as numeric 1.0/0.0 for true non-neutral samples and null for neutral samples.
+The next meaningful milestone is to decide whether Step 7's rank mismatch should motivate a targeted representation ablation, a multi-symbol sensitivity check, or a narrower top-of-book prediction diagnostic.
