@@ -79,25 +79,20 @@ Note: this is a lightweight protocol rerun. Its absolute metrics should be inter
 
 *Caption: Rank mismatch weakens after excluding `last_snapshot_repeat@40`, so the mismatch claim is partial rather than general.*
 
-## What to Inspect
+## Primary Reading Path
 
 | File | Purpose |
 | --- | --- |
-| [technical_memo.md](technical_memo.md) | Final technical memo and conservative interpretation |
-| [results/step10_split_protocol_decomposition/split_integrity_audit.csv](results/step10_split_protocol_decomposition/split_integrity_audit.csv) | Overlap and near-neighbor risk by split protocol |
-| [results/step10_split_protocol_decomposition/protocol_contrasts.csv](results/step10_split_protocol_decomposition/protocol_contrasts.csv) | Main Step 10 protocol contrast table |
-| [results/step9_validation_selection_audit/step9_manifest.json](results/step9_validation_selection_audit/step9_manifest.json) | Validation-selected representation audit |
-| [results/step9_validation_selection_audit/fair_transfer_comparison.csv](results/step9_validation_selection_audit/fair_transfer_comparison.csv) | Validation-selected transfer comparison |
-| [results/step8_fairness_robustness/final_claim_table.csv](results/step8_fairness_robustness/final_claim_table.csv) | Step 8 claim table before the Step 9 representation-selection audit |
-| [results/step7_alignment/join_contract.json](results/step7_alignment/join_contract.json) | Join validation |
-| [docs/artifact_index.md](docs/artifact_index.md) | Full artifact map |
-| [docs/reproduction_guide.md](docs/reproduction_guide.md) | Commands to reproduce Step 3 to Step 10 |
-| [docs/data_note.md](docs/data_note.md) | Data contract, subset facts, and split policy |
-| [docs/environment.md](docs/environment.md) | Local runtime and external data assumptions |
+| [technical_memo.md](technical_memo.md) | Final interpretation and limitations |
+| [protocol_contrasts.csv](results/step10_split_protocol_decomposition/protocol_contrasts.csv) | Split-protocol contrast |
+| [split_integrity_audit.csv](results/step10_split_protocol_decomposition/split_integrity_audit.csv) | Overlap and near-neighbor exposure audit |
+| [fair_transfer_comparison.csv](results/step9_validation_selection_audit/fair_transfer_comparison.csv) | Validation-selected transfer comparison |
+
+Supporting docs and full artifact references are listed in [artifact_index.md](docs/artifact_index.md).
 
 ## Reproduction
 
-Reproduction commands are collected in [docs/reproduction_guide.md](docs/reproduction_guide.md). The pipeline requires the external processed A-share dataset locally. Raw data, generated tensors, checkpoints, and latent arrays are not committed.
+Reproduction commands are collected in [reproduction_guide.md](docs/reproduction_guide.md). The pipeline requires the external processed A-share dataset locally. Raw data, generated tensors, checkpoints, and latent arrays are not committed.
 
 ## Scope and Limitations
 
