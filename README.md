@@ -10,9 +10,9 @@ I am not optimizing for a leaderboard score or a trading PnL claim. The value of
 
 The main evaluation path is locked to LOBench-style `sample_stride=4` window sampling plus a boundary-purged chronological split. Train comes first, validation follows, test comes last, and overlapping sliding-window history is purged at train/validation and validation/test boundaries. In code, that policy is enforced through `build_sliding_windows()`, `chronological_split()`, and `_enforce_non_overlap_boundary()`.
 
-Random split is not part of the main experiment. A no-purge chronological split is also not part of Step 4/5/6/7; if I add either later, it will be labeled as an auxiliary diagnostic rather than the primary result.
+Random split is not part of the main experiment. A no-purge chronological split is also not part of Step 4/5/6/7/8; if I add either later, it will be labeled as an auxiliary diagnostic rather than the primary result.
 
-Step 3, Step 5, Step 6, and Step 7 have been rerun on the stride-4 main protocol. Step 7 now provides the first controlled reconstruction-prediction alignment result for this one-symbol, one-horizon subset.
+Step 3, Step 5, Step 6, Step 7, and Step 8 have been run on the stride-4 main protocol. Step 8 adds fairness and robustness controls around the Step 7 transfer and rank-alignment conclusions for this one-symbol, one-horizon subset.
 
 Current data run:
 
@@ -73,6 +73,20 @@ Artifacts from Step 7 live under:
 
 - `results/step7_alignment/`
 - `figures/step7_alignment/`
+
+Step 8 fairness and robustness snapshot:
+
+- Tuned raw-window logistic control selected `C=0.1` and reached test macro-F1 `0.3904`, below the untuned Step 5 logistic baseline (`0.3972`).
+- The post hoc best frozen-latent head remains `last_snapshot_repeat@40` with test macro-F1 `0.4355`.
+- Paired bootstrap for best frozen-latent head vs tuned raw-window logistic gives macro-F1 delta `0.0452`, 95% CI `[0.0082, 0.0823]`, and `fraction_delta_gt_0=0.9930`.
+- The best frozen-latent head is selected post hoc from Step 7 test macro-F1, so the bootstrap comparison is descriptive rather than a fully pre-registered confirmatory test.
+- Rank mismatch persists across all latent variants, but weakens after excluding `last_snapshot_repeat@40`; without it, `pca@128` is both reconstruction-best and prediction-best.
+- `last_snapshot_repeat@40` has zero last-step reconstruction error by construction.
+
+Artifacts from Step 8 live under:
+
+- `results/step8_fairness_robustness/`
+- `figures/step8_fairness_robustness/`
 
 ## Scope
 

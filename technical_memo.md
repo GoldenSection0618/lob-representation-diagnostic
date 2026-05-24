@@ -99,6 +99,36 @@ The reconstruction-best variant (`pca@128`) and frozen-head prediction-best vari
 
 Sample-level failure diagnostics for the Step 5 `logistic_regression` predictor are weak but informative. For incorrect prediction on the test split, mean AUROC by reconstruction diagnostic is highest for `spread_mae` (`0.5204`), then `top_of_book_mse` (`0.5035`), while `normalized_mse` is below random-direction discrimination (`0.4744`). This points away from using aggregate reconstruction error alone and toward local book-state diagnostics in Step 7 interpretation.
 
+## Step 8 Fairness and Robustness
+
+Step 8 adds controls around the Step 7 transfer claim. It does not change the split, data construction, latent artifacts, or reconstruction encoders.
+
+Fair transfer comparison on the test split:
+
+| Variant | Source | Selection Basis | Test Macro-F1 | MCC | Delta vs Tuned Raw |
+| --- | --- | --- | ---: | ---: | ---: |
+| raw_window_logistic_untuned | raw window baseline | fixed Step 5 logistic | 0.3972 | 0.1007 | 0.0068 |
+| raw_window_logistic_tuned | raw window tuned control | val macro-F1, MCC/log-loss tie-break | 0.3904 | 0.0978 | 0.0000 |
+| best_frozen_latent_head | frozen latent head | post hoc best Step 7 test macro-F1 | 0.4355 | 0.2579 | 0.0452 |
+| pca@128_frozen_latent_head | frozen latent head | reconstruction-best test normalized MSE | 0.3624 | 0.1281 | -0.0280 |
+
+The tuned raw-window logistic control selected `C=0.1`. The post hoc best frozen-latent head (`last_snapshot_repeat@40`) remains ahead of both raw-window logistic controls on test macro-F1. Paired bootstrap on the same test samples gives delta `0.0452` for best frozen latent versus tuned raw logistic, with 95% CI `[0.0082, 0.0823]` and `fraction_delta_gt_0=0.9930`.
+
+This is still descriptive: `best_frozen_latent_head` is selected post hoc from Step 7 test macro-F1, not pre-registered before looking at test performance.
+
+Rank sensitivity:
+
+| Variant Set | N | Recon MSE vs Macro-F1 Spearman | Best Reconstruction | Best Prediction | Interpretation |
+| --- | ---: | ---: | --- | --- | --- |
+| all_latent_variants | 9 | -0.2000 | pca@128 | last_snapshot_repeat@40 | rank_mismatch_persists |
+| exclude_last_snapshot_repeat | 8 | -0.7143 | pca@128 | pca@128 | rank_mismatch_weakens |
+| pca_only | 5 | -0.9000 | pca@128 | pca@128 | rank_mismatch_weakens |
+| mlp_ae_only | 3 | 1.0000 | mlp_ae@64 | mlp_ae@16 | rank_mismatch_persists |
+
+`last_snapshot_repeat@40` has zero last-step reconstruction error by construction. Removing it changes the best-prediction variant from `last_snapshot_repeat@40` to `pca@128`, so the strongest rank-mismatch claim does not survive that sensitivity check. The safer conclusion is: the transfer advantage over tuned raw-window logistic is supported in this subset, while the reconstruction-prediction rank mismatch is partially supported and structurally influenced by the last-snapshot baseline.
+
+Overall reconstruction MSE is not a reliable standalone downstream proxy across all tested variants in this one-symbol, one-horizon, stride-4 subset, but the claim is weaker after excluding `last_snapshot_repeat@40`.
+
 ## Metrics
 
 Reconstruction metrics:

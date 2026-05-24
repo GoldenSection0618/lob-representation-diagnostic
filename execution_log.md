@@ -765,3 +765,98 @@ Interpretation after this addendum:
 
 - The best frozen latent head beats both the fixed Step 5 raw-window logistic baseline and the matched tuned raw-window logistic head in this run.
 - This strengthens the transfer comparison but does not change the scope guard: the evidence remains one symbol, one horizon, and one stride-4 subset.
+
+## Step 8: Fairness and Robustness Checks
+
+Command:
+
+```bash
+mamba run -n lob python scripts/05_fairness_robustness.py \
+  --subset-dir data/processed/minimal_subset \
+  --step5-dir results/step5_prediction_baselines \
+  --step6-dir results/step6_reconstruction_baselines \
+  --step7-dir results/step7_alignment \
+  --output-dir results/step8_fairness_robustness \
+  --figures-dir figures/step8_fairness_robustness \
+  --seed 42 \
+  --c-grid 0.01,0.1,1.0,10.0 \
+  --bootstrap-iterations 1000 \
+  --selection-metric macro_f1 \
+  --primary-metric macro_f1
+```
+
+Tuned raw-window logistic control:
+
+- input: flattened raw Step 3 windows, input_dim `4000`
+- scaler: train-only `StandardScaler`
+- classifier: `LogisticRegression(class_weight="balanced", max_iter=2000, solver="lbfgs")`
+- C grid: `0.01, 0.1, 1.0, 10.0`
+- selected C: `0.1`
+- selected by: validation macro-F1, tie-broken by validation MCC then validation log loss
+- validation macro-F1: `0.489837`
+- test macro-F1: `0.390383`
+- tuned raw logistic beat untuned Step 5 logistic: `false`
+
+Fair comparison result:
+
+- untuned Step 5 logistic test macro-F1: `0.397216`
+- tuned raw-window logistic test macro-F1: `0.390383`
+- best frozen latent head: `last_snapshot_repeat@40`
+- best frozen latent head selection basis: `posthoc_best_test_macro_f1_from_step7`
+- best frozen latent head test macro-F1: `0.435540`
+- pca@128 frozen latent head test macro-F1: `0.362361`
+- best frozen latent head delta vs tuned raw logistic: `0.045157`
+
+Paired bootstrap result:
+
+- comparison: `best_frozen_latent_head` vs `raw_window_logistic_tuned`
+- metric: macro-F1
+- n bootstrap: `1000`
+- delta observed: `0.045157`
+- 95% CI: `[0.008235, 0.082278]`
+- fraction_delta_gt_0: `0.993000`
+- interpretation: descriptive paired test-sample robustness check; best latent variant was selected post hoc from Step 7 test macro-F1.
+
+Rank sensitivity result:
+
+- all latent variants: `rank_mismatch_persists`
+- exclude `last_snapshot_repeat@40`: `rank_mismatch_weakens`
+- pca only: `rank_mismatch_weakens`
+- mlp_ae only: `rank_mismatch_persists`
+- After excluding `last_snapshot_repeat@40`, `pca@128` is both reconstruction-best and prediction-best.
+
+Last-snapshot sensitivity:
+
+- `last_snapshot_repeat@40` has `last_step_mse=0` by construction.
+- With last snapshot included, best prediction variant is `last_snapshot_repeat@40`.
+- Without last snapshot, best prediction variant is `pca@128`.
+- last-step-MSE Spearman vs macro-F1 changes from `-0.733333` to `-0.619048`.
+
+Generated result files:
+
+- `results/step8_fairness_robustness/raw_logistic_tuning_grid.csv`
+- `results/step8_fairness_robustness/raw_logistic_tuned_metrics.csv`
+- `results/step8_fairness_robustness/raw_logistic_tuned_predictions.csv`
+- `results/step8_fairness_robustness/fair_transfer_comparison.csv`
+- `results/step8_fairness_robustness/paired_bootstrap_delta.csv`
+- `results/step8_fairness_robustness/rank_sensitivity.csv`
+- `results/step8_fairness_robustness/last_snapshot_sensitivity.csv`
+- `results/step8_fairness_robustness/final_claim_table.csv`
+- `results/step8_fairness_robustness/run_config.json`
+- `results/step8_fairness_robustness/summary.md`
+
+Generated figures:
+
+- `figures/step8_fairness_robustness/fair_transfer_macro_f1_with_ci.png`
+- `figures/step8_fairness_robustness/tuning_grid_val_test_curve.png`
+- `figures/step8_fairness_robustness/rank_sensitivity_by_variant_set.png`
+- `figures/step8_fairness_robustness/last_snapshot_sensitivity.png`
+
+Scope guard:
+
+- Step 8 does not modify Step 3 data construction or `chronological_split()`.
+- No random split or no-purge split was added.
+- No reconstruction encoders were retrained.
+- No new reconstruction models were introduced.
+- No multi-symbol or multi-horizon expansion was run.
+- Latent path reproducibility had already been fixed before Step 8 and was not redone here.
