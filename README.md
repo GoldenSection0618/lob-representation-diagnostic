@@ -1,8 +1,8 @@
 # LOB Representation Diagnostic
 
-## One-line Summary
-
 A leakage-aware diagnostic study of whether LOB reconstruction quality transfers to downstream mid-price trend prediction under chronological evaluation.
+
+The project emphasizes evaluation validity, reproducible experiment design, and conservative interpretation rather than model scale or trading profitability.
 
 ## Why This Matters
 
@@ -14,11 +14,7 @@ Financial LOB windows are highly overlapping. If train/test splits are randomize
 
 2. **Reconstruction quality is not a standalone downstream proxy.** The best full-window reconstruction variant is `pca@128`, but the best validation-selected frozen-head predictor is `last_snapshot_repeat@40`.
 
-3. **The claim is intentionally narrow.** The evidence is limited to `sz000001`, `trend5`, and one stride-4 subset. This is a diagnostic PoW, not a full benchmark, SOTA claim, or trading study.
-
-This is not a full LOBench reproduction, not a state-of-the-art claim, not a trading PnL study, and not a general market prediction claim.
-
-Scope: one symbol, `sz000001`; one label, `trend5`; one stride-4 subset. No cross-symbol, cross-horizon, or trading generality is claimed.
+3. **The claim is intentionally narrow.** The evidence is limited to `sz000001`, `trend5`, and one stride-4 subset. This is a diagnostic PoW, not a full LOBench reproduction, SOTA claim, trading PnL study, or general market prediction claim.
 
 ## Protocol at a Glance
 
@@ -31,20 +27,20 @@ Scope: one symbol, `sz000001`; one label, `trend5`; one stride-4 subset. No cros
 | Feature dimension | `40` |
 | Sample stride | `4` |
 | Conservative baseline split | Boundary-purged chronological `70/15/15` |
-| Step 10 split diagnostics | `random_window_naive`, `random_block_purged`, `chronological_no_purge` |
+| Split diagnostics | `random_window_naive`, `random_block_purged`, `chronological_no_purge` |
 | Samples | `7952` |
 | Train / val / test | `5600 / 1200 / 1152` |
 | Data policy | External data, generated tensors, checkpoints, and latent arrays are not committed |
 
 ## Split Protocol Demonstration
 
-Step 10 is the clearest visual diagnostic. It asks whether random-split gains come from legitimate temporal distribution mixing or from overlapping-window near-neighbor exposure.
+This split-protocol diagnostic asks whether random-split gains come from legitimate temporal distribution mixing or from overlapping-window near-neighbor exposure.
 
-![Step 10 protocol diagnostic overview](figures/step10_split_protocol_decomposition/protocol_diagnostic_overview.png)
+![Split protocol diagnostic overview](figures/step10_split_protocol_decomposition/protocol_diagnostic_overview.png)
 
 *Caption: Naive random window-level splitting has full train/test overlap and k5 near-neighbor exposure in this subset, while blocked random with embargo removes that exposure. The performance panel shows that naive random also raises test macro-F1.*
 
-![Step 10 macro-F1 delta decomposition](figures/step10_split_protocol_decomposition/macro_f1_delta_decomposition.png)
+![Macro-F1 delta decomposition](figures/step10_split_protocol_decomposition/macro_f1_delta_decomposition.png)
 
 *Caption: Most of the naive-random macro-F1 gain disappears when switching from naive window-level randomization to blocked random with embargo, especially for the tuned raw-window logistic control.*
 
@@ -55,7 +51,7 @@ Interpretation:
 - `random_block_purged` improves tuned raw-window logistic test macro-F1 by only `0.0004` over chronological.
 - The naive-vs-blocked gap is therefore the main evidence that the naive-random gain is mostly near-neighbor exposure in this subset.
 
-Note: Step 10 is a lightweight within-step protocol rerun. Its absolute metrics should be interpreted through within-step contrasts rather than as replacements for the Step 8/9 headline metrics. `chronological_no_purge` is a no-extra-purge diagnostic on the existing Step 3 kept sample universe; it does not restore Step 3 boundary-dropped samples.
+Note: this is a lightweight protocol rerun. Its absolute metrics should be interpreted through within-step contrasts rather than as replacements for the transfer-audit headline metrics. `chronological_no_purge` is a no-extra-purge diagnostic on the existing kept sample universe; it does not restore boundary-dropped samples.
 
 ## Evidence Snapshot
 
@@ -110,7 +106,7 @@ Reproduction commands are collected in [docs/reproduction_guide.md](docs/reprodu
 | Symbol coverage | One symbol, `sz000001` |
 | Horizon coverage | One label horizon, `trend5` |
 | Sampling protocol | One stride-4 subset |
-| Split protocol | Step 10 compares chronological, naive random, blocked random, and no-purge diagnostics on the same subset |
+| Split protocol | Chronological, naive random, blocked random, and no-purge diagnostics on the same subset |
 | Multi-symbol robustness | Not evaluated |
 | Multi-horizon robustness | Not evaluated |
 | Regime / failure-case diagnostics | Deferred to future work as Step 11; not part of the current evidence chain |
