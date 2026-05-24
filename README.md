@@ -45,7 +45,7 @@ The main evidence combines raw-window prediction baselines, reconstruction-only 
 
 ![Fair transfer macro-F1 with CI](figures/step8_fairness_robustness/fair_transfer_macro_f1_with_ci.png)
 
-*Caption: The validation-selected frozen latent head remains above the tuned raw-window logistic control on test macro-F1 in this subset.*
+*Caption: Step 8 fair-transfer visualization. Step 9 shows the same latent variant is selected by validation macro-F1, so the plotted best-frozen-latent comparison matches the validation-selected comparison in this run.*
 
 ![Rank alignment](figures/step7_alignment/reconstruction_prediction_rank_alignment.png)
 
@@ -62,8 +62,9 @@ The main evidence combines raw-window prediction baselines, reconstruction-only 
 | [technical_memo.md](technical_memo.md) | Final technical memo and conservative interpretation |
 | [docs/artifact_index.md](docs/artifact_index.md) | Primary and supporting evidence files |
 | [docs/reproduction_guide.md](docs/reproduction_guide.md) | Commands to reproduce Step 3 to Step 9 |
-| [results/step8_fairness_robustness/final_claim_table.csv](results/step8_fairness_robustness/final_claim_table.csv) | Claim status table |
-| [results/step9_validation_selection_audit/step9_manifest.json](results/step9_validation_selection_audit/step9_manifest.json) | Validation-selected representation audit |
+| [results/step9_validation_selection_audit/step9_manifest.json](results/step9_validation_selection_audit/step9_manifest.json) | Current validation-selected representation audit |
+| [results/step9_validation_selection_audit/fair_transfer_comparison.csv](results/step9_validation_selection_audit/fair_transfer_comparison.csv) | Current fair transfer comparison after validation selection |
+| [results/step8_fairness_robustness/final_claim_table.csv](results/step8_fairness_robustness/final_claim_table.csv) | Step 8 claim table before the Step 9 representation-selection audit |
 | [results/step7_alignment/join_contract.json](results/step7_alignment/join_contract.json) | Join validation |
 | [docs/data_note.md](docs/data_note.md) | Data contract, subset facts, and split policy |
 | [docs/environment.md](docs/environment.md) | Local runtime and external data assumptions |

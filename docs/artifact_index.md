@@ -86,8 +86,8 @@ Primary files:
 - `paired_bootstrap_delta.csv`: paired test-sample bootstrap deltas.
 - `rank_sensitivity.csv`: rank sensitivity with within-set and global rank fields.
 - `last_snapshot_sensitivity.csv`: last-snapshot baseline sensitivity.
-- `final_claim_table.csv`: C1-C7 claim status table.
-- `summary.md`: compact Step 8 result and final claim update.
+- `final_claim_table.csv`: Step 8 C1-C7 claim status table before the Step 9 representation-selection audit.
+- `summary.md`: compact Step 8 result and claim update.
 
 Figures:
 
@@ -105,7 +105,7 @@ Primary files:
 - `candidate_selection_audit.csv`: validation-ranked frozen latent candidates with test metrics retained only for final evaluation/reference.
 - `fair_transfer_comparison.csv`: validation-selected latent head compared with raw-window controls and reference rows.
 - `paired_bootstrap_delta.csv`: paired test-sample bootstrap deltas for the validation-selected latent head.
-- `step9_manifest.json`: selection policy, selected variants, bootstrap status, and interpretation.
+- `step9_manifest.json`: current validation-selected representation audit, selection policy, selected variants, bootstrap status, and interpretation.
 
 ## Supporting Diagnostics
 
