@@ -1053,3 +1053,32 @@ Scope guard:
 - Step 10 uses random split only as an explicit diagnostic protocol.
 - Step 10 does not run multi-symbol or multi-horizon expansion.
 - Step 10 does not introduce new model families or trading evaluation.
+
+### Step 10 visualization patch
+
+Command:
+
+```bash
+mamba run -n lob python scripts/07_split_protocol_decomposition.py \
+    --subset-dir data/processed/minimal_subset \
+    --output-dir results/step10_split_protocol_decomposition \
+    --figures-dir figures/step10_split_protocol_decomposition \
+    --random-seeds 42,43,44,45,46 \
+    --block-size 512 \
+    --embargo-size 25
+```
+
+Generated figures:
+
+- `figures/step10_split_protocol_decomposition/protocol_diagnostic_overview.png`
+- `figures/step10_split_protocol_decomposition/macro_f1_delta_decomposition.png`
+- `figures/step10_split_protocol_decomposition/seed_distribution_macro_f1.png`
+- `figures/step10_split_protocol_decomposition/mcc_delta_decomposition.png`
+- `figures/step10_split_protocol_decomposition/selection_stability_matrix.png`
+
+Interpretation:
+
+- Naive random split has full test overlap and k5 near-neighbor exposure in the current subset.
+- Blocked random with embargo reduces measured test overlap and k5 near-neighbor exposure to zero.
+- The tuned raw-window logistic naive-vs-blocked macro-F1 gap explains nearly all of the naive-vs-chronological gain.
+- The validation-selected latent head shows the same direction, but the naive-vs-blocked share is smaller, so the wording should be "most" rather than "almost all".

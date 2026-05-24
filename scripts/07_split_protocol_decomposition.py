@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Sequence, Tuple
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
@@ -40,6 +41,35 @@ MODEL_ORDER = [
     "validation_selected_latent_head",
     "test_posthoc_best_latent_head",
 ]
+
+PROTOCOL_ORDER = [
+    "chronological_purged",
+    "random_window_naive",
+    "random_block_purged",
+    "chronological_no_purge",
+]
+
+DISPLAY_MODELS = [
+    "raw_window_logistic_tuned",
+    "validation_selected_latent_head",
+]
+
+CONTRAST_ORDER = [
+    "random_window_naive_vs_chronological_purged",
+    "random_block_purged_vs_chronological_purged",
+    "random_window_naive_vs_random_block_purged",
+]
+
+CONTRAST_LABELS = {
+    "random_window_naive_vs_chronological_purged": "Naive random\nvs chronological",
+    "random_block_purged_vs_chronological_purged": "Blocked random\nvs chronological",
+    "random_window_naive_vs_random_block_purged": "Naive random\nvs blocked random",
+}
+
+MODEL_LABELS = {
+    "raw_window_logistic_tuned": "Raw tuned logistic",
+    "validation_selected_latent_head": "Validation-selected latent",
+}
 
 
 @dataclass
@@ -793,6 +823,221 @@ def build_contrasts(summary: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def ensure_figures_dir(figures_dir: Path) -> None:
+    figures_dir.mkdir(parents=True, exist_ok=True)
+
+
+def ordered_protocol_frame(df: pd.DataFrame, col: str = "split_protocol") -> pd.DataFrame:
+    out = df.copy()
+    out[col] = pd.Categorical(out[col], categories=PROTOCOL_ORDER, ordered=True)
+    return out.sort_values(col)
+
+
+def save_figure(fig, path: Path) -> None:
+    fig.tight_layout()
+    fig.savefig(path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_protocol_diagnostic_overview(audit_df: pd.DataFrame, summary_df: pd.DataFrame, figures_dir: Path) -> None:
+    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(14, 5.5))
+
+    # Panel A: split integrity risk
+    audit_grouped = (
+        audit_df.groupby("split_protocol", observed=True)
+        .agg(
+            mean_overlap=("fraction_test_with_overlapping_train_window", "mean"),
+            mean_k5=("fraction_test_with_near_neighbor_train_k5", "mean"),
+        )
+        .reset_index()
+    )
+    audit_grouped = ordered_protocol_frame(audit_grouped)
+    protocols = list(audit_grouped["split_protocol"])
+    x = np.arange(len(protocols))
+    width = 0.35
+    bars1 = ax_a.bar(x - width / 2, audit_grouped["mean_overlap"].values, width, label="Test overlap risk", color="#d62728", alpha=0.85)
+    bars2 = ax_a.bar(x + width / 2, audit_grouped["mean_k5"].values, width, label="Test k5 near-neighbor risk", color="#ff7f0e", alpha=0.85)
+    for b in bars1:
+        ax_a.text(b.get_x() + b.get_width() / 2, b.get_height() + 0.01, f"{b.get_height():.2f}", ha="center", va="bottom", fontsize=8)
+    for b in bars2:
+        ax_a.text(b.get_x() + b.get_width() / 2, b.get_height() + 0.01, f"{b.get_height():.2f}", ha="center", va="bottom", fontsize=8)
+    ax_a.set_xticks(x)
+    ax_a.set_xticklabels(protocols, rotation=15, ha="right", fontsize=8)
+    ax_a.set_ylabel("Risk fraction")
+    ax_a.set_ylim(0, 1.15)
+    ax_a.legend(fontsize=7)
+    ax_a.set_title("A. Split integrity risk", fontsize=10, fontweight="bold")
+    ax_a.grid(axis="y", alpha=0.3)
+
+    # Panel B: Mean test macro-F1
+    panel_data = summary_df[summary_df["model_or_variant"].isin(DISPLAY_MODELS)].copy()
+    panel_data = ordered_protocol_frame(panel_data)
+    x2 = np.arange(len(PROTOCOL_ORDER))
+    width2 = 0.35
+    for i, (model_key, label) in enumerate(MODEL_LABELS.items()):
+        sub = panel_data[panel_data["model_or_variant"] == model_key]
+        values = []
+        errs = []
+        for proto in PROTOCOL_ORDER:
+            match = sub[sub["split_protocol"] == proto]
+            if len(match) > 0:
+                values.append(match["mean_test_macro_f1"].values[0])
+                errs.append(match["std_test_macro_f1"].values[0])
+            else:
+                values.append(0)
+                errs.append(0)
+        offset = (i - 0.5) * width2
+        ax_b.bar(x2 + offset, values, width2, label=label, alpha=0.85)
+        ax_b.errorbar(x2 + offset, values, yerr=errs, fmt="none", ecolor="black", capsize=3, linewidth=0.8)
+    ax_b.set_xticks(x2)
+    ax_b.set_xticklabels(PROTOCOL_ORDER, rotation=15, ha="right", fontsize=8)
+    ax_b.set_ylabel("Mean test macro-F1")
+    ax_b.legend(fontsize=7)
+    ax_b.set_title("B. Mean test macro-F1", fontsize=10, fontweight="bold")
+    ax_b.grid(axis="y", alpha=0.3)
+
+    fig.suptitle("Step 10 protocol diagnostic overview", fontsize=12, fontweight="bold", y=1.01)
+    save_figure(fig, figures_dir / "protocol_diagnostic_overview.png")
+
+
+def plot_macro_f1_delta_decomposition(contrasts_df: pd.DataFrame, figures_dir: Path) -> None:
+    data = contrasts_df[
+        (contrasts_df["contrast_id"].isin(CONTRAST_ORDER))
+        & (contrasts_df["model_or_variant"].isin(DISPLAY_MODELS))
+    ].copy()
+    x = np.arange(len(CONTRAST_ORDER))
+    width = 0.35
+    fig, ax = plt.subplots(figsize=(10, 5))
+    for i, (model_key, label) in enumerate(MODEL_LABELS.items()):
+        sub = data[data["model_or_variant"] == model_key]
+        values = []
+        for cid in CONTRAST_ORDER:
+            match = sub[sub["contrast_id"] == cid]
+            if len(match) > 0:
+                values.append(match["delta_test_macro_f1"].values[0])
+            else:
+                values.append(0)
+        offset = (i - 0.5) * width
+        bars = ax.bar(x + offset, values, width, label=label, alpha=0.85)
+        for b in bars:
+            h = b.get_height()
+            sign = "+" if h >= 0 else ""
+            ax.text(b.get_x() + b.get_width() / 2, h + (0.002 if h >= 0 else -0.008),
+                    f"{sign}{h:.4f}", ha="center", va="bottom" if h >= 0 else "top", fontsize=8)
+    ax.axhline(y=0, color="black", linewidth=0.8, linestyle="-")
+    max_value = max(data["delta_test_macro_f1"].max(), 0.0)
+    min_value = min(data["delta_test_macro_f1"].min(), 0.0)
+    ax.set_ylim(min_value - 0.01, max_value + 0.02)
+    ax.set_xticks(x)
+    ax.set_xticklabels([CONTRAST_LABELS[cid] for cid in CONTRAST_ORDER], fontsize=9)
+    ax.set_ylabel("Delta test macro-F1")
+    ax.set_title("Macro-F1 delta decomposition", fontsize=12, fontweight="bold")
+    ax.legend(fontsize=8)
+    ax.grid(axis="y", alpha=0.3)
+    save_figure(fig, figures_dir / "macro_f1_delta_decomposition.png")
+
+
+def plot_seed_distribution_macro_f1(perf_df: pd.DataFrame, figures_dir: Path) -> None:
+    data = perf_df[perf_df["model_or_variant"].isin(DISPLAY_MODELS)].copy()
+    data = ordered_protocol_frame(data)
+    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(14, 5.5))
+    for ax, (model_key, label) in zip([ax_a, ax_b], MODEL_LABELS.items()):
+        sub = data[data["model_or_variant"] == model_key]
+        for proto in PROTOCOL_ORDER:
+            proto_data = sub[sub["split_protocol"] == proto]
+            if len(proto_data) == 0:
+                continue
+            x_pos = PROTOCOL_ORDER.index(proto)
+            ax.scatter([x_pos] * len(proto_data), proto_data["test_macro_f1"].values,
+                       alpha=0.6, s=30, color="steelblue", zorder=3)
+            mean_val = proto_data["test_macro_f1"].mean()
+            ax.scatter(x_pos, mean_val, marker="D", s=80, color="darkorange", zorder=4, edgecolors="black", linewidths=0.5)
+            ax.plot([x_pos - 0.15, x_pos + 0.15], [mean_val, mean_val], color="darkorange", linewidth=1.5, zorder=4)
+        ax.set_xticks(range(len(PROTOCOL_ORDER)))
+        ax.set_xticklabels(PROTOCOL_ORDER, rotation=15, ha="right", fontsize=8)
+        ax.set_ylabel("Test macro-F1")
+        ax.set_title(f"{label}", fontsize=10, fontweight="bold")
+        ax.grid(axis="y", alpha=0.3)
+    fig.suptitle("Seed-level test macro-F1 by protocol", fontsize=12, fontweight="bold", y=1.01)
+    fig.text(0.5, -0.04, "Deterministic protocols (chronological_purged, chronological_no_purge) have one run. "
+             "Random protocols (random_window_naive, random_block_purged) have 5 runs.",
+             ha="center", fontsize=7.5, fontstyle="italic")
+    save_figure(fig, figures_dir / "seed_distribution_macro_f1.png")
+
+
+def plot_mcc_delta_decomposition(contrasts_df: pd.DataFrame, figures_dir: Path) -> None:
+    data = contrasts_df[
+        (contrasts_df["contrast_id"].isin(CONTRAST_ORDER))
+        & (contrasts_df["model_or_variant"].isin(DISPLAY_MODELS))
+    ].copy()
+    x = np.arange(len(CONTRAST_ORDER))
+    width = 0.35
+    fig, ax = plt.subplots(figsize=(10, 5))
+    for i, (model_key, label) in enumerate(MODEL_LABELS.items()):
+        sub = data[data["model_or_variant"] == model_key]
+        values = []
+        for cid in CONTRAST_ORDER:
+            match = sub[sub["contrast_id"] == cid]
+            if len(match) > 0:
+                values.append(match["delta_test_mcc"].values[0])
+            else:
+                values.append(0)
+        offset = (i - 0.5) * width
+        bars = ax.bar(x + offset, values, width, label=label, alpha=0.85)
+        for b in bars:
+            h = b.get_height()
+            sign = "+" if h >= 0 else ""
+            ax.text(b.get_x() + b.get_width() / 2, h + (0.002 if h >= 0 else -0.008),
+                    f"{sign}{h:.4f}", ha="center", va="bottom" if h >= 0 else "top", fontsize=8)
+    ax.axhline(y=0, color="black", linewidth=0.8, linestyle="-")
+    max_value = max(data["delta_test_mcc"].max(), 0.0)
+    min_value = min(data["delta_test_mcc"].min(), 0.0)
+    ax.set_ylim(min_value - 0.02, max_value + 0.03)
+    ax.set_xticks(x)
+    ax.set_xticklabels([CONTRAST_LABELS[cid] for cid in CONTRAST_ORDER], fontsize=9)
+    ax.set_ylabel("Delta test MCC")
+    ax.set_title("MCC delta decomposition", fontsize=12, fontweight="bold")
+    ax.legend(fontsize=8)
+    ax.grid(axis="y", alpha=0.3)
+    save_figure(fig, figures_dir / "mcc_delta_decomposition.png")
+
+
+def plot_selection_stability_matrix(selection_df: pd.DataFrame, figures_dir: Path) -> None:
+    protocol_summary = (
+        selection_df.groupby("split_protocol", observed=True)
+        .agg(
+            best_recon=("best_reconstruction_variant", lambda x: x.iloc[0] if x.nunique() == 1 else "mixed"),
+            val_sel=("validation_selected_latent_variant", lambda x: x.iloc[0] if x.nunique() == 1 else "mixed"),
+            test_best=("test_posthoc_best_latent_variant", lambda x: x.iloc[0] if x.nunique() == 1 else "mixed"),
+        )
+        .reset_index()
+    )
+    protocol_summary = ordered_protocol_frame(protocol_summary)
+    headers = ["Split protocol", "Best reconstruction", "Validation-selected", "Test-posthoc best"]
+    cell_text = [
+        [row["split_protocol"], row["best_recon"], row["val_sel"], row["test_best"]]
+        for _, row in protocol_summary.iterrows()
+    ]
+    fig, ax = plt.subplots(figsize=(10, len(cell_text) * 0.6 + 1.2))
+    ax.axis("off")
+    table = ax.table(
+        cellText=cell_text,
+        colLabels=headers,
+        cellLoc="center",
+        loc="center",
+    )
+    table.auto_set_font_size(False)
+    table.set_fontsize(9)
+    table.scale(1, 1.5)
+    for key, cell in table.get_celld().items():
+        cell.set_edgecolor("#cccccc")
+        if key[0] == 0:
+            cell.set_text_props(fontweight="bold")
+            cell.set_facecolor("#f0f0f0")
+    ax.set_title("Selection stability across Step 10 runs", fontsize=12, fontweight="bold", pad=12)
+    save_figure(fig, figures_dir / "selection_stability_matrix.png")
+
+
 def build_manifest(args: argparse.Namespace, runs: Sequence[SplitRun], summary: pd.DataFrame, contrasts: pd.DataFrame) -> Dict[str, object]:
     return {
         "step": "step10_split_protocol_decomposition",
@@ -843,6 +1088,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--subset-dir", default="data/processed/minimal_subset")
     parser.add_argument("--output-dir", default="results/step10_split_protocol_decomposition")
+    parser.add_argument("--figures-dir", default="figures/step10_split_protocol_decomposition")
+    parser.add_argument("--skip-plots", action="store_true")
     parser.add_argument("--random-seeds", default="42,43,44,45,46")
     parser.add_argument("--block-size", type=int, default=512)
     parser.add_argument("--embargo-size", type=int, default=25)
@@ -888,6 +1135,15 @@ def main() -> None:
     summary_df.to_csv(output_dir / "protocol_summary.csv", index=False)
     with (output_dir / "protocol_manifest.json").open("w") as f:
         json.dump(to_jsonable(manifest), f, indent=2)
+
+    if not args.skip_plots:
+        figures_dir = Path(args.figures_dir)
+        ensure_figures_dir(figures_dir)
+        plot_protocol_diagnostic_overview(audit_df, summary_df, figures_dir)
+        plot_macro_f1_delta_decomposition(contrasts_df, figures_dir)
+        plot_seed_distribution_macro_f1(perf_df, figures_dir)
+        plot_mcc_delta_decomposition(contrasts_df, figures_dir)
+        plot_selection_stability_matrix(selection_df, figures_dir)
 
     key = contrasts_df[
         (contrasts_df["model_or_variant"] == "raw_window_logistic_tuned")

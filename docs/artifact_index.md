@@ -122,6 +122,14 @@ Primary files:
 - `protocol_contrasts.csv`: protocol-level contrasts for README and memo interpretation.
 - `protocol_summary.csv`: aggregate protocol by model summary.
 
+Figures:
+
+- `figures/step10_split_protocol_decomposition/protocol_diagnostic_overview.png`
+- `figures/step10_split_protocol_decomposition/macro_f1_delta_decomposition.png`
+- `figures/step10_split_protocol_decomposition/seed_distribution_macro_f1.png`
+- `figures/step10_split_protocol_decomposition/mcc_delta_decomposition.png`
+- `figures/step10_split_protocol_decomposition/selection_stability_matrix.png`
+
 ## Supporting Diagnostics
 
 Supporting files include classification reports, prediction distributions, level-wise reconstruction errors, feature-group errors, temporal errors, error quantile responses, failure-mode deltas, and model-level correlations. They are retained for auditability but are not the shortest path through the core claim.

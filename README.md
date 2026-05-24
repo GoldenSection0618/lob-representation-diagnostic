@@ -47,7 +47,15 @@ The main evidence combines raw-window prediction baselines, reconstruction-only 
 | Step 10 integrity audit | naive random train/test overlap risk `1.0000`; blocked random overlap risk `0.0000` | Random split result is diagnostic, not recommended evaluation |
 | Step 10 raw tuned contrast | naive random improves test macro-F1 by `0.0583`; blocked random improves by `0.0004` | Suggests most naive-random gain comes from near-neighbor exposure, not pure regime mixing |
 
-Note: Step 10 uses a lightweight protocol-diagnostic rerun, so its chronological numbers are not intended to replace the Step 8/9 headline metrics. The small rerun differences do not materially change the qualitative conclusion; Step 10 should be interpreted through within-step protocol contrasts.
+Note: Step 10 is a lightweight within-step protocol rerun. Its absolute metrics should be interpreted through within-step contrasts rather than as replacements for the Step 8/9 headline metrics. `chronological_no_purge` is a no-extra-purge diagnostic on the existing Step 3 kept sample universe; it does not restore Step 3 boundary-dropped samples.
+
+![Step 10 protocol diagnostic overview](figures/step10_split_protocol_decomposition/protocol_diagnostic_overview.png)
+
+*Caption: Naive random window-level splitting has full train/test overlap and k5 near-neighbor exposure in this subset, while blocked random with embargo removes that exposure. The performance panel shows that naive random also raises test macro-F1.*
+
+![Step 10 macro-F1 delta decomposition](figures/step10_split_protocol_decomposition/macro_f1_delta_decomposition.png)
+
+*Caption: Most of the naive-random macro-F1 gain disappears when switching from naive window-level randomization to blocked random with embargo, especially for the tuned raw-window logistic control.*
 
 ![Fair transfer macro-F1 with CI](figures/step8_fairness_robustness/fair_transfer_macro_f1_with_ci.png)
 

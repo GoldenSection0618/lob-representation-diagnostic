@@ -123,12 +123,13 @@ mamba run -n lob python scripts/06_validation_selected_transfer.py \
 mamba run -n lob python scripts/07_split_protocol_decomposition.py \
   --subset-dir data/processed/minimal_subset \
   --output-dir results/step10_split_protocol_decomposition \
+  --figures-dir figures/step10_split_protocol_decomposition \
   --random-seeds 42,43,44,45,46 \
   --block-size 512 \
   --embargo-size 25
 ```
 
-Step 10 uses the existing stride-4 sample universe and compares `chronological_purged`, `random_window_naive`, `random_block_purged`, and `chronological_no_purge`. It is a protocol-layer diagnostic, not a full Step 6 to Step 9 rerun.
+Step 10 uses the existing stride-4 sample universe and compares `chronological_purged`, `random_window_naive`, `random_block_purged`, and `chronological_no_purge`. It is a protocol-layer diagnostic, not a full Step 6 to Step 9 rerun. This command regenerates both Step 10 CSV artifacts and Step 10 figures.
 
 ## Validation
 

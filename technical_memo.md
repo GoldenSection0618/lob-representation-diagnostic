@@ -223,9 +223,27 @@ The split-integrity audit shows the core distinction before any performance inte
 | `random_block_purged` | 0.0000 | 0.0000 | Near-neighbor exposure controlled in this audit |
 | `chronological_no_purge` | 0.0000 | 0.0000 | Identical on the current kept sample universe |
 
+![Step 10 protocol diagnostic overview](figures/step10_split_protocol_decomposition/protocol_diagnostic_overview.png)
+
 Performance contrasts reinforce the integrity audit. For the run-level tuned raw-window logistic control, `random_window_naive` improves mean test macro-F1 by `0.0583` over `chronological_purged`, while `random_block_purged` improves it by only `0.0004`. For the validation-selected latent head, the corresponding deltas are `0.0657` and `0.0139`. The contrast `random_window_naive - random_block_purged` is therefore the clearest evidence that the naive-random gain is mainly tied to near-neighbor exposure in this lightweight diagnostic panel.
 
+![Step 10 macro-F1 delta decomposition](figures/step10_split_protocol_decomposition/macro_f1_delta_decomposition.png)
+
+For tuned raw-window logistic, the naive-random macro-F1 gain over chronological is `0.0583`, while the blocked-random gain is only `0.0004`. The naive-vs-blocked gap is `0.0579`, approximately 99% of the naive-vs-chronological gap. This supports the interpretation that the tuned raw-window gain under naive random splitting is mainly associated with overlapping-window near-neighbor exposure in this subset.
+
+For the validation-selected latent head, the naive-vs-blocked gap is `0.0518`, about 79% of the naive-vs-chronological gap of `0.0657`. This suggests most, but not all, of the naive-random latent gain is associated with near-neighbor exposure.
+
+![Step 10 seed-level macro-F1 distribution](figures/step10_split_protocol_decomposition/seed_distribution_macro_f1.png)
+
+The same decomposition pattern is visible at the seed level: random-window naive runs sit above chronological and blocked-random runs for both display models, while blocked-random variability is separated from the full-overlap naive random condition.
+
+![Step 10 MCC delta decomposition](figures/step10_split_protocol_decomposition/mcc_delta_decomposition.png)
+
+The MCC contrast has the same direction as macro-F1 for the naive-vs-blocked comparison, which supports the interpretation that the effect is not only a macro-F1 artifact.
+
 Representation selection is stable across the Step 10 protocol runs: validation macro-F1 selects `last_snapshot_repeat@40` in every run, the test-posthoc best is also `last_snapshot_repeat@40`, and reconstruction-best remains `pca@128`. The rank-mismatch pattern therefore persists in the lightweight panel, but it should still be interpreted with the known last-snapshot structural caveat.
+
+![Step 10 selection stability matrix](figures/step10_split_protocol_decomposition/selection_stability_matrix.png)
 
 Step 10 does not repeat the full Step 6 to Step 9 representation panel. It fits train-only `PCA@32`, `PCA@128`, and `last_snapshot_repeat@40` diagnostics inside each split run, plus run-local logistic C-grid heads. This keeps the step focused on protocol decomposition rather than model expansion.
 
