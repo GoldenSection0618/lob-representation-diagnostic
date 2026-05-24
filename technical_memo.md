@@ -229,6 +229,8 @@ Representation selection is stable across the Step 10 protocol runs: validation 
 
 Step 10 does not repeat the full Step 6 to Step 9 representation panel. It fits train-only `PCA@32`, `PCA@128`, and `last_snapshot_repeat@40` diagnostics inside each split run, plus run-local logistic C-grid heads. This keeps the step focused on protocol decomposition rather than model expansion.
 
+Because Step 10 is a lightweight protocol-diagnostic rerun, its chronological numbers are not expected to exactly match the Step 8/9 headline metrics. The differences are small relative to the protocol contrasts: Step 10's chronological raw tuned macro-F1 is within a few thousandths of the Step 8/9 tuned raw result, and Step 10's chronological validation-selected latent result is similarly close to the Step 9 headline latent result. These small rerun differences do not materially change the qualitative conclusion. The relevant Step 10 evidence is therefore the within-step contrast among chronological, naive random, and blocked-random protocols, not replacement of the Step 8/9 headline metrics.
+
 ## 5. Failure and Mismatch Analysis
 
 The final interpretation is conservative.
