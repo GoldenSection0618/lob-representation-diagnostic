@@ -865,3 +865,28 @@ Scope guard:
 - No new reconstruction models were introduced.
 - No multi-symbol or multi-horizon expansion was run.
 - Latent path reproducibility had already been fixed before Step 8 and was not redone here.
+
+## Step 8 Rank Sensitivity Rank-Field Fix
+
+I corrected the rank fields in `rank_sensitivity.csv` so they are explicit about rank scope.
+
+Issue:
+
+- `best_reconstruction_variant`, `best_prediction_variant`, and `same_best_variant` were already computed within each variant set.
+- The rank fields used alongside them were inherited from Step 7 all-variant global ranks.
+- This made rows such as `exclude_last_snapshot_repeat` look inconsistent: `pca@128` was both reconstruction-best and prediction-best within the set, but its prediction rank was shown as global rank `2`.
+
+Fix:
+
+- `scripts/05_fairness_robustness.py` now recomputes subset-local ranks inside each `variant_set`.
+- `rank_sensitivity.csv` now writes:
+  - `reconstruction_best_rank_pred_macro_f1_within_set`
+  - `prediction_best_rank_recon_mse_within_set`
+  - `reconstruction_best_rank_pred_macro_f1_global`
+  - `prediction_best_rank_recon_mse_global`
+
+Validation:
+
+- For `exclude_last_snapshot_repeat`, `pca_only`, and `high_capacity_latent_dim_gt_40`, the within-set ranks are now `1/1` when `pca@128` is both reconstruction-best and prediction-best.
+- Global ranks are still retained as explicit reference fields.
+- Step 8 conclusions are unchanged.

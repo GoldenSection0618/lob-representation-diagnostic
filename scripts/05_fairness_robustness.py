@@ -450,6 +450,13 @@ def rank_sensitivity(rank_df: pd.DataFrame) -> pd.DataFrame:
     rows = []
     for name, mask in sets.items():
         part = rank_df[mask].copy()
+        if len(part):
+            part["subset_rank_recon_normalized_mse"] = (
+                part["test_recon_normalized_mse"].rank(method="min", ascending=True).astype(int)
+            )
+            part["subset_rank_pred_macro_f1"] = (
+                part["test_pred_macro_f1"].rank(method="min", ascending=False).astype(int)
+            )
         variants = part["representation_variant"].tolist()
         n = len(part)
         if n:
@@ -482,8 +489,14 @@ def rank_sensitivity(rank_df: pd.DataFrame) -> pd.DataFrame:
                     "best_reconstruction_variant": best_recon["representation_variant"],
                     "best_prediction_variant": best_pred["representation_variant"],
                     "same_best_variant": bool(same),
-                    "reconstruction_best_rank_pred_macro_f1": int(best_recon["rank_pred_macro_f1"]),
-                    "prediction_best_rank_recon_mse": int(best_pred["rank_recon_normalized_mse"]),
+                    "reconstruction_best_rank_pred_macro_f1_within_set": int(
+                        best_recon["subset_rank_pred_macro_f1"]
+                    ),
+                    "prediction_best_rank_recon_mse_within_set": int(
+                        best_pred["subset_rank_recon_normalized_mse"]
+                    ),
+                    "reconstruction_best_rank_pred_macro_f1_global": int(best_recon["rank_pred_macro_f1"]),
+                    "prediction_best_rank_recon_mse_global": int(best_pred["rank_recon_normalized_mse"]),
                     "interpretation": interpretation,
                 }
             )
@@ -500,8 +513,10 @@ def rank_sensitivity(rank_df: pd.DataFrame) -> pd.DataFrame:
                     "best_reconstruction_variant": None,
                     "best_prediction_variant": None,
                     "same_best_variant": False,
-                    "reconstruction_best_rank_pred_macro_f1": np.nan,
-                    "prediction_best_rank_recon_mse": np.nan,
+                    "reconstruction_best_rank_pred_macro_f1_within_set": np.nan,
+                    "prediction_best_rank_recon_mse_within_set": np.nan,
+                    "reconstruction_best_rank_pred_macro_f1_global": np.nan,
+                    "prediction_best_rank_recon_mse_global": np.nan,
                     "interpretation": "rank_mismatch_not_evaluable",
                 }
             )
