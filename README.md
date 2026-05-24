@@ -1,13 +1,20 @@
 # LOB Representation Diagnostic
 
-This repo is a diagnostic PoW testing whether better LOB reconstruction transfers to downstream `trend5` prediction, and how split protocol choices affect that conclusion.
+## One-line Summary
 
-## Main Finding
+A leakage-aware diagnostic study of whether LOB reconstruction quality transfers to downstream mid-price trend prediction under chronological evaluation.
 
-- Aggregate reconstruction MSE is not a reliable standalone proxy for downstream prediction in this one-symbol, one-horizon, stride-4 subset.
-- The strongest reconstruction-prediction mismatch is driven by `last_snapshot_repeat@40`: weak full-window reconstruction, strongest frozen-head macro-F1.
-- Step 9 reduces the post hoc representation-selection caveat because validation macro-F1 and test macro-F1 both select `last_snapshot_repeat@40` in this run.
-- Step 10 shows that naive random window-level splitting is optimistic: it creates full train/test near-neighbor exposure and materially higher macro-F1, while blocked random with embargo removes that exposure and stays close to chronological performance.
+## Why This Matters
+
+Financial LOB windows are highly overlapping. If train/test splits are randomized at the window level, downstream prediction metrics may be inflated by near-neighbor exposure. This project uses LOBench-style processed A-share data to test reconstruction-prediction alignment under stricter split protocols.
+
+## Main Takeaways
+
+1. **Split protocol matters.** Naive random window splitting creates full train/test near-neighbor exposure and materially higher macro-F1, while blocked random with embargo stays close to chronological performance.
+
+2. **Reconstruction quality is not a standalone downstream proxy.** The best full-window reconstruction variant is `pca@128`, but the best validation-selected frozen-head predictor is `last_snapshot_repeat@40`.
+
+3. **The claim is intentionally narrow.** The evidence is limited to `sz000001`, `trend5`, and one stride-4 subset. This is a diagnostic PoW, not a full benchmark, SOTA claim, or trading study.
 
 This is not a full LOBench reproduction, not a state-of-the-art claim, not a trading PnL study, and not a general market prediction claim.
 
@@ -50,7 +57,7 @@ Interpretation:
 
 Note: Step 10 is a lightweight within-step protocol rerun. Its absolute metrics should be interpreted through within-step contrasts rather than as replacements for the Step 8/9 headline metrics. `chronological_no_purge` is a no-extra-purge diagnostic on the existing Step 3 kept sample universe; it does not restore Step 3 boundary-dropped samples.
 
-## Key Results
+## Evidence Snapshot
 
 | Evidence | Result | Caveat |
 | --- | --- | --- |
