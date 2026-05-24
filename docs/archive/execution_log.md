@@ -2,7 +2,7 @@
 
 This log keeps the decisions and run facts that matter for reproduction. It avoids narrative filler.
 
-Note: this file is a chronological archive. Early sections include superseded dense-window pilot facts from before the protocol was revised to LOBench-style `sample_stride=4`. Current main evidence is documented in `README.md`, `data_note.md`, `technical_memo.md`, `docs/evaluation_protocol.md`, and `docs/artifact_index.md`.
+Note: this file is a chronological archive. Early sections include superseded dense-window pilot facts from before the protocol was revised to LOBench-style `sample_stride=4`. Current main evidence is documented in `README.md`, `docs/data_note.md`, `technical_memo.md`, `docs/evaluation_protocol.md`, and `docs/artifact_index.md`.
 
 ## Step 1: Repository Boundary
 
@@ -10,13 +10,13 @@ I initialized `~/lob-representation-diagnostic` as an independent diagnostic rep
 
 The question I locked at the start: does better LOB reconstruction reliably transfer into better downstream mid-price trend prediction?
 
-Initial project skeleton:
+Initial project skeleton at the time. Some support documents were later moved under `docs/` during repository cleanup:
 
 - `README.md`
-- `environment.md`
-- `data_note.md`
+- `environment.md` (now `docs/environment.md`)
+- `data_note.md` (now `docs/data_note.md`)
 - `technical_memo.md`
-- `configs/`
+- `configs/` (not used in the final layout)
 - `src/`
 - `scripts/`
 - `results/`
@@ -65,9 +65,9 @@ Files touched:
 - `src/data/make_subset.py`
 - `src/data/checks.py`
 - `scripts/01_prepare_data.py`
-- `data_note.md`
+- `docs/data_note.md`
 - `README.md`
-- `execution_log.md`
+- `docs/archive/execution_log.md`
 
 Dry run:
 
@@ -133,7 +133,7 @@ Files added or modified:
 - `figures/step5_prediction_baselines/*`
 - `README.md`
 - `technical_memo.md`
-- `execution_log.md`
+- `docs/archive/execution_log.md`
 
 Command:
 
@@ -196,7 +196,7 @@ Files added or modified:
 - `figures/step6_reconstruction_baselines/*`
 - `README.md`
 - `technical_memo.md`
-- `execution_log.md`
+- `docs/archive/execution_log.md`
 
 Command:
 
