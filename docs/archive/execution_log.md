@@ -892,3 +892,80 @@ Validation:
 - For `exclude_last_snapshot_repeat`, `pca_only`, and `high_capacity_latent_dim_gt_40`, the within-set ranks are now `1/1` when `pca@128` is both reconstruction-best and prediction-best.
 - Global ranks are still retained as explicit reference fields.
 - Step 8 conclusions are unchanged.
+
+## Step 9: Validation-Selected Frozen Latent Transfer Audit
+
+Purpose:
+
+- Audit the Step 8 post hoc representation-selection caveat.
+- Select the frozen latent representation using validation split metrics only.
+- Reuse existing Step 7 latent-head candidates and Step 8 raw-window controls.
+- Do not retrain reconstruction encoders or add new representation models.
+
+Command:
+
+```bash
+mamba run -n lob python scripts/06_validation_selected_transfer.py \
+  --bootstrap-iterations 1000 \
+  --seed 42
+```
+
+Input artifacts:
+
+- `results/step7_alignment/latent_head_metrics.csv`
+- `results/step7_alignment/latent_head_predictions.csv`
+- `results/step7_alignment/model_level_rank_alignment.csv`
+- `results/step8_fairness_robustness/fair_transfer_comparison.csv`
+- `results/step8_fairness_robustness/raw_logistic_tuned_predictions.csv`
+- `results/step5_prediction_baselines/per_sample_predictions.csv`
+
+Selection policy:
+
+- Primary: highest validation macro-F1.
+- Tie 1: highest validation MCC.
+- Tie 2: lowest validation log loss.
+- Tie 3: smaller latent dimension.
+- Tie 4: deterministic lexical representation variant order.
+- Test metrics are not used for validation-selected representation selection.
+
+Key result:
+
+- validation-selected variant: `last_snapshot_repeat@40`
+- test-posthoc best variant: `last_snapshot_repeat@40`
+- same variant: `True`
+- reconstruction-best variant: `pca@128`
+- validation-selected latent test macro-F1: `0.435540`
+- tuned raw-window logistic test macro-F1: `0.390383`
+- delta vs tuned raw-window logistic: `0.045157`
+
+Paired bootstrap result:
+
+- comparison: `validation_selected_latent_head` vs `raw_window_logistic_tuned`
+- metric: macro-F1
+- n bootstrap: `1000`
+- delta observed: `0.045157`
+- 95% CI: `[0.008169, 0.079875]`
+- fraction_delta_gt_0: `0.993000`
+- interpretation: descriptive paired test-sample robustness check.
+
+Generated result files:
+
+- `results/step9_validation_selection_audit/candidate_selection_audit.csv`
+- `results/step9_validation_selection_audit/fair_transfer_comparison.csv`
+- `results/step9_validation_selection_audit/paired_bootstrap_delta.csv`
+- `results/step9_validation_selection_audit/step9_manifest.json`
+
+Validation:
+
+- `candidate_selection_audit.csv` has exactly one `selected_by_validation=True`.
+- `candidate_selection_audit.csv` has exactly one `selected_by_test_posthoc=True`.
+- The validation-selected row in `fair_transfer_comparison.csv` has `uses_test_for_selection=False`.
+- Step 9 did not modify Step 7 or Step 8 artifacts.
+
+Scope guard:
+
+- Single symbol: `sz000001`.
+- Single horizon: `trend5`.
+- Single stride-4 boundary-purged chronological subset.
+- Candidate set fixed by earlier steps.
+- No random split, no no-purge split, no multi-symbol or multi-horizon expansion.

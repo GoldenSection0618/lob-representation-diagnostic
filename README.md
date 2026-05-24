@@ -7,7 +7,8 @@ This repo is a diagnostic PoW testing whether better LOB reconstruction transfer
 - In this one-symbol, one-horizon, stride-4 subset, aggregate reconstruction MSE is not a reliable standalone proxy for downstream prediction.
 - The strongest mismatch is driven by `last_snapshot_repeat@40`, which has weak full-window reconstruction but the strongest frozen-head test macro-F1.
 - After excluding `last_snapshot_repeat@40`, the rank mismatch weakens and `pca@128` becomes both reconstruction-best and prediction-best.
-- The post hoc best frozen latent head beats the tuned raw-window logistic control in this subset, but this remains descriptive rather than fully pre-registered confirmatory evidence.
+- Step 9 reduces the post hoc representation-selection caveat: validation macro-F1 and test macro-F1 both select `last_snapshot_repeat@40` in this run.
+- The validation-selected frozen latent head beats the tuned raw-window logistic control in this subset, but this remains descriptive rather than general evidence.
 
 This is not a full LOBench reproduction, not a state-of-the-art claim, not a trading PnL study, and not a general market prediction claim.
 
@@ -28,22 +29,23 @@ This is not a full LOBench reproduction, not a state-of-the-art claim, not a tra
 
 ## Evidence Snapshot
 
-The main evidence combines raw-window prediction baselines, reconstruction-only baselines, frozen-latent transfer, and robustness checks.
+The main evidence combines raw-window prediction baselines, reconstruction-only baselines, frozen-latent transfer, robustness checks, and a validation-selected representation audit.
 
 | Evidence | Result | Caveat |
 | --- | --- | --- |
 | Best raw-window Step 5 baseline | logistic regression, test macro-F1 `0.3972` | Fixed-C baseline |
 | Tuned raw-window logistic control | test macro-F1 `0.3904`, selected `C=0.1` | Selected by validation macro-F1 |
 | Raw-window test-oracle reference | test macro-F1 `0.4101` | Post hoc only, not selection-valid |
-| Best frozen latent head | `last_snapshot_repeat@40`, test macro-F1 `0.4355` | Selected post hoc from Step 7 test macro-F1 |
-| Paired bootstrap, best latent vs tuned raw | macro-F1 delta `0.0452`, 95% CI `[0.0082, 0.0823]`, `fraction_delta_gt_0=0.9930` | Descriptive, not fully pre-registered |
+| Validation-selected frozen latent head | `last_snapshot_repeat@40`, test macro-F1 `0.4355` | Selected by validation macro-F1, not test |
+| Step 9 selection audit | validation-selected and test-posthoc best are both `last_snapshot_repeat@40` | Reduces but does not eliminate selection-bias caveats |
+| Paired bootstrap, validation-selected latent vs tuned raw | macro-F1 delta `0.0452`, 95% CI `[0.0082, 0.0799]`, `fraction_delta_gt_0=0.9930` | Descriptive, not fully pre-registered |
 | Best reconstruction variant | `pca@128`, test normalized MSE `0.1838` | Best reconstruction is not best prediction across all variants |
 | Rank sensitivity | excluding `last_snapshot_repeat@40` makes `pca@128` both reconstruction-best and prediction-best | Weakens the broad rank-mismatch claim |
 | Step 7 join validation | `70560` joined rows, zero duplicate joined keys | Supports sample-level alignment contract |
 
 ![Fair transfer macro-F1 with CI](figures/step8_fairness_robustness/fair_transfer_macro_f1_with_ci.png)
 
-*Caption: The post hoc best frozen latent head remains above the tuned raw-window logistic control on test macro-F1 in this subset.*
+*Caption: The validation-selected frozen latent head remains above the tuned raw-window logistic control on test macro-F1 in this subset.*
 
 ![Rank alignment](figures/step7_alignment/reconstruction_prediction_rank_alignment.png)
 
@@ -59,8 +61,9 @@ The main evidence combines raw-window prediction baselines, reconstruction-only 
 | --- | --- |
 | [technical_memo.md](technical_memo.md) | Final technical memo and conservative interpretation |
 | [docs/artifact_index.md](docs/artifact_index.md) | Primary and supporting evidence files |
-| [docs/reproduction_guide.md](docs/reproduction_guide.md) | Commands to reproduce Step 3 to Step 8 |
+| [docs/reproduction_guide.md](docs/reproduction_guide.md) | Commands to reproduce Step 3 to Step 9 |
 | [results/step8_fairness_robustness/final_claim_table.csv](results/step8_fairness_robustness/final_claim_table.csv) | Claim status table |
+| [results/step9_validation_selection_audit/step9_manifest.json](results/step9_validation_selection_audit/step9_manifest.json) | Validation-selected representation audit |
 | [results/step7_alignment/join_contract.json](results/step7_alignment/join_contract.json) | Join validation |
 | [docs/data_note.md](docs/data_note.md) | Data contract, subset facts, and split policy |
 | [docs/environment.md](docs/environment.md) | Local runtime and external data assumptions |
@@ -80,7 +83,7 @@ Reproduction commands are collected in `docs/reproduction_guide.md`. The pipelin
 | Multi-symbol robustness | Not evaluated |
 | Multi-horizon robustness | Not evaluated |
 | Trading PnL | Not evaluated |
-| Best frozen latent head | Selected post hoc |
+| Best frozen latent head | Validation-selected in Step 9; candidate set fixed by earlier steps |
 | Bootstrap comparison | Descriptive, not fully pre-registered confirmatory evidence |
 
 ## Repository Layout

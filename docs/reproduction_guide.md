@@ -105,6 +105,18 @@ mamba run -n lob python scripts/05_fairness_robustness.py \
   --primary-metric macro_f1
 ```
 
+## Step 9: Validation-Selected Transfer Audit
+
+```bash
+mamba run -n lob python scripts/06_validation_selected_transfer.py \
+  --step5-dir results/step5_prediction_baselines \
+  --step7-dir results/step7_alignment \
+  --step8-dir results/step8_fairness_robustness \
+  --output-dir results/step9_validation_selection_audit \
+  --bootstrap-iterations 1000 \
+  --seed 42
+```
+
 ## Validation
 
 ```bash
@@ -124,4 +136,4 @@ Interpretation:
 
 - `random_split` should not appear in active pipeline code.
 - `no-purge` should appear only in documentation or scope guard text.
-- Step 7 and Step 8 should not fit PCA or retrain MLP-AE reconstruction encoders.
+- Step 7, Step 8, and Step 9 should not fit PCA or retrain MLP-AE reconstruction encoders.

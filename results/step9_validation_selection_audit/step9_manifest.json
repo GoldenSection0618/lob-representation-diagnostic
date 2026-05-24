@@ -1,0 +1,47 @@
+{
+  "step": "step9_validation_selected_transfer_audit",
+  "purpose": "Audit frozen latent transfer when representation selection is based only on validation split metrics.",
+  "input_artifacts": {
+    "latent_head_metrics": "results/step7_alignment/latent_head_metrics.csv",
+    "latent_head_predictions": "results/step7_alignment/latent_head_predictions.csv",
+    "step8_fair_transfer_comparison": "results/step8_fairness_robustness/fair_transfer_comparison.csv",
+    "step8_raw_logistic_tuned_predictions": "results/step8_fairness_robustness/raw_logistic_tuned_predictions.csv",
+    "step5_per_sample_predictions": "results/step5_prediction_baselines/per_sample_predictions.csv",
+    "step7_rank_alignment": "results/step7_alignment/model_level_rank_alignment.csv"
+  },
+  "selection_policy": {
+    "primary": "highest validation macro_f1",
+    "tie_1": "highest validation mcc",
+    "tie_2": "lowest validation log_loss",
+    "tie_3": "smaller latent_dim",
+    "tie_4": "lexical representation_variant",
+    "test_metrics_used_for_selection": false
+  },
+  "selected_results": {
+    "validation_selected_variant": "last_snapshot_repeat@40",
+    "test_posthoc_best_variant": "last_snapshot_repeat@40",
+    "reconstruction_best_variant": "pca@128",
+    "validation_selected_equals_test_posthoc_best": true,
+    "validation_selected_test_macro_f1": 0.435539631553929,
+    "raw_tuned_control_test_macro_f1": 0.3903825178402786,
+    "delta_macro_f1_vs_raw_tuned": 0.04515711371365039,
+    "validation_selected_test_mcc": 0.2579222852489748,
+    "raw_tuned_control_test_mcc": 0.0977943757589497,
+    "delta_mcc_vs_raw_tuned": 0.16012790949002512
+  },
+  "bootstrap": {
+    "status": "completed",
+    "artifact": "results/step9_validation_selection_audit/paired_bootstrap_delta.csv",
+    "n_bootstrap": 1000,
+    "seed": 42
+  },
+  "interpretation": "The post hoc selection caveat is reduced because validation macro-F1 and test macro-F1 select the same latent variant (last_snapshot_repeat@40) in this run.",
+  "remaining_limits": [
+    "single symbol",
+    "single horizon trend5",
+    "single stride-4 chronological subset",
+    "candidate set fixed by earlier steps",
+    "no multi-symbol robustness",
+    "no multi-horizon robustness"
+  ]
+}

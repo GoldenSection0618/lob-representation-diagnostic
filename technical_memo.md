@@ -182,6 +182,22 @@ Rank sensitivity:
 
 The all-variant rank mismatch is influenced by `last_snapshot_repeat@40`. After excluding that special baseline, `pca@128` becomes both reconstruction-best and prediction-best. The rank-mismatch claim is therefore only partially supported.
 
+### Validation-Selected Representation Audit
+
+Step 9 audits the main Step 8 transfer caveat: the best frozen latent head should not be selected by looking at test macro-F1. It reuses the fixed Step 7 latent-head candidates and selects the representation variant using validation split metrics only.
+
+Selection policy:
+
+1. Highest validation macro-F1.
+2. Highest validation MCC.
+3. Lowest validation log loss.
+4. Smaller latent dimension.
+5. Lexical representation-variant order.
+
+Under this policy, the validation-selected latent variant is `last_snapshot_repeat@40`. The test-posthoc best latent variant is also `last_snapshot_repeat@40`. Its held-out test macro-F1 is `0.4355`, compared with `0.3904` for the tuned raw-window logistic control, a delta of `0.0452`. The paired bootstrap delta for validation-selected latent versus tuned raw logistic is `0.0452`, with 95% CI `[0.0082, 0.0799]` and `fraction_delta_gt_0=0.9930`.
+
+This reduces the post hoc representation-selection caveat for this run because validation macro-F1 and test macro-F1 select the same latent variant. It does not prove transferability in general. The candidate set is fixed by earlier steps, the evidence remains one symbol and one horizon, and the bootstrap remains a descriptive paired test-sample check.
+
 ## 5. Failure and Mismatch Analysis
 
 The final interpretation is conservative.
@@ -197,7 +213,7 @@ Fourth, sample-level diagnostics do not support aggregate normalized MSE as a st
 The resulting claim is:
 
 - Supported: the Step 7 sample-level join is valid.
-- Supported within this subset: the post hoc best frozen latent head beats the fixed and tuned raw-window logistic controls on test macro-F1.
+- Supported within this subset: the validation-selected frozen latent head beats the fixed and tuned raw-window logistic controls on test macro-F1.
 - Partially supported: reconstruction-best and prediction-best variants differ across all latent variants.
 - Partially supported: overall reconstruction MSE is not a reliable standalone downstream proxy in this controlled run.
 - Scope-limited: all conclusions are restricted to `sz000001`, `trend5`, the stride-4 subset, and the boundary-purged chronological split.
@@ -214,8 +230,8 @@ The main limitations are:
 - No trading PnL, execution, slippage, cost, or portfolio evaluation.
 - No random-split or no-purge ablation in the main evidence chain.
 - No cross-regime or multi-date stress test.
-- Reconstruction encoders are not retrained in Step 7 or Step 8.
-- The best frozen latent head is selected post hoc from Step 7 test macro-F1.
+- Reconstruction encoders are not retrained in Step 7, Step 8, or Step 9.
+- Step 9 selects the frozen latent head by validation macro-F1, but the candidate set is fixed by earlier steps.
 - The paired bootstrap comparison is descriptive, not fully pre-registered confirmatory evidence.
 - The raw logistic test-oracle point is a transparency reference, not a selection-valid baseline.
 
@@ -225,7 +241,7 @@ These limits are intentional for the current PoW scope. The goal is a controlled
 
 Future extensions should tighten the claim before broadening it:
 
-- Pre-register the latent-head selection rule before evaluating test performance.
+- Pre-register the full latent-head selection and evaluation protocol before running future test evaluations.
 - Repeat the protocol across additional A-share symbols.
 - Repeat the protocol across additional prediction horizons.
 - Add sensitivity checks across time segments or market regimes.

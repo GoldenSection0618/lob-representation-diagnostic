@@ -12,6 +12,7 @@ Primary evidence:
 | `step6_reconstruction_baselines/` | Reconstruction-only baselines, LOBench-compatible reconstruction metrics, and per-sample reconstruction errors |
 | `step7_alignment/` | Reconstruction-prediction alignment, frozen latent-head transfer, and rank comparison |
 | `step8_fairness_robustness/` | Tuned raw-window controls, paired bootstrap, rank sensitivity, and final claim table |
+| `step9_validation_selection_audit/` | Validation-selected frozen latent transfer audit |
 
 Entry points:
 

@@ -96,6 +96,17 @@ Figures:
 - `figures/step8_fairness_robustness/rank_sensitivity_by_variant_set.png`
 - `figures/step8_fairness_robustness/last_snapshot_sensitivity.png`
 
+### Step 9: Validation-Selected Transfer Audit
+
+Directory: `results/step9_validation_selection_audit/`
+
+Primary files:
+
+- `candidate_selection_audit.csv`: validation-ranked frozen latent candidates with test metrics retained only for final evaluation/reference.
+- `fair_transfer_comparison.csv`: validation-selected latent head compared with raw-window controls and reference rows.
+- `paired_bootstrap_delta.csv`: paired test-sample bootstrap deltas for the validation-selected latent head.
+- `step9_manifest.json`: selection policy, selected variants, bootstrap status, and interpretation.
+
 ## Supporting Diagnostics
 
 Supporting files include classification reports, prediction distributions, level-wise reconstruction errors, feature-group errors, temporal errors, error quantile responses, failure-mode deltas, and model-level correlations. They are retained for auditability but are not the shortest path through the core claim.
