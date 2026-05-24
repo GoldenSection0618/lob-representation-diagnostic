@@ -121,7 +121,7 @@ This supports the validity of the sample-level alignment panel for validation/te
 
 ### Frozen-Latent Transfer
 
-Step 7 trains logistic heads on frozen reconstruction latents. The reconstruction encoders are not retrained. The head uses a train-only `StandardScaler`, `class_weight="balanced"`, C grid `{0.01, 0.1, 1.0, 10.0}`, and validation macro-F1 selection with MCC and log-loss tie-breaks.
+Step 7 trains logistic heads on frozen reconstruction latents. The reconstruction encoders are not retrained. The head uses a train-only `StandardScaler`, `class_weight="balanced"`, C grid `{0.01, 0.1, 1.0, 10.0}`, and validation macro-F1 selection with MCC and log-loss tie-breaks. The leaderboard below is the original Step 7/8 transfer view, before the Step 9 validation-selected representation audit.
 
 Compact transfer leaderboard on the test split:
 
@@ -137,7 +137,7 @@ Compact transfer leaderboard on the test split:
 
 The best frozen latent head, `last_snapshot_repeat@40`, has higher test macro-F1 (`0.4355`) than the fixed raw-window logistic baseline (`0.3972`) and the validation-selected tuned raw-window logistic control (`0.3904`). The raw logistic C grid contains a test-oracle point at `C=0.01` with test macro-F1 `0.4101`; this is reported for transparency but is not a valid model-selection baseline because it is selected after observing test performance.
 
-This transfer result is supported for the current subset, but it is descriptive rather than fully confirmatory because `best_frozen_latent_head` is selected post hoc from Step 7 test macro-F1.
+At the Step 7/8 stage, this transfer result was descriptive rather than fully confirmatory because `best_frozen_latent_head` was identified from Step 7 test macro-F1. Step 9 below audits that specific representation-selection caveat.
 
 ### Rank Alignment
 
@@ -169,7 +169,7 @@ Fair transfer comparison on the test split:
 
 The validation-selected tuned raw-window logistic control selects `C=0.1` and reaches test macro-F1 `0.3904`. Paired bootstrap on the same test samples gives a macro-F1 delta of `0.0452` for best frozen latent versus tuned raw logistic, with 95% CI `[0.0082, 0.0823]` and `fraction_delta_gt_0=0.9930`.
 
-This supports the narrow claim that the post hoc best frozen latent head is stronger than the tuned raw-window logistic control on test macro-F1 in this subset. It does not make the comparison fully pre-registered or general.
+At the Step 8 stage, this supported the narrow descriptive claim that the post hoc best frozen latent head was stronger than the tuned raw-window logistic control on test macro-F1 in this subset. Step 9 below updates the selection interpretation by applying validation-only representation selection. The comparison still does not become fully pre-registered or general.
 
 Rank sensitivity:
 
