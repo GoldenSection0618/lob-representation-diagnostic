@@ -77,6 +77,7 @@ Artifacts from Step 7 live under:
 Step 8 fairness and robustness snapshot:
 
 - Tuned raw-window logistic control selected `C=0.1` and reached test macro-F1 `0.3904`, below the untuned Step 5 logistic baseline (`0.3972`).
+- The raw-window logistic grid has a post hoc test-oracle point at `C=0.01` with test macro-F1 `0.4101`; this is not selection-valid, and it remains below the best frozen-latent head.
 - The post hoc best frozen-latent head remains `last_snapshot_repeat@40` with test macro-F1 `0.4355`.
 - Paired bootstrap for best frozen-latent head vs tuned raw-window logistic gives macro-F1 delta `0.0452`, 95% CI `[0.0082, 0.0823]`, and `fraction_delta_gt_0=0.9930`.
 - The best frozen-latent head is selected post hoc from Step 7 test macro-F1, so the bootstrap comparison is descriptive rather than a fully pre-registered confirmatory test.

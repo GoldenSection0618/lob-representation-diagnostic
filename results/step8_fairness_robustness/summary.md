@@ -12,13 +12,16 @@
 - test macro-F1 at selected C: `0.390383`
 - untuned Step 5 raw logistic test macro-F1: `0.397216`
 - tuned raw-window logistic beats untuned raw-window logistic: `False`
+- raw-window logistic test-oracle best C: `0.01` with test macro-F1 `0.410148`; this is not selection-valid.
 
 ## Fair Transfer Comparison
 - best frozen latent head test macro-F1: `0.435540`
 - tuned raw-window logistic test macro-F1: `0.390383`
 - delta: `0.045157`
 - best frozen latent head still beats tuned raw-window logistic: `True`
+- best frozen latent head also remains above the raw-window logistic test-oracle point by `0.025392` macro-F1.
 - best_frozen_latent_head is selected post hoc from Step 7 test macro-F1, so the paired bootstrap comparison is descriptive rather than a fully pre-registered confirmatory test.
+- The raw-window logistic grid contains a test-oracle best point at C=0.01 with test macro-F1 0.4101. This is not used as the selected tuned baseline because C is selected by validation macro-F1, but it remains below the post hoc best frozen latent head at 0.4355.
 
 ## Paired Bootstrap Delta
 - best latent vs tuned raw logistic macro-F1 delta: `0.045157`

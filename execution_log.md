@@ -796,16 +796,21 @@ Tuned raw-window logistic control:
 - validation macro-F1: `0.489837`
 - test macro-F1: `0.390383`
 - tuned raw logistic beat untuned Step 5 logistic: `false`
+- raw logistic test-oracle best C: `0.01`
+- raw logistic test-oracle test macro-F1: `0.410148`
+- oracle status: post hoc reference only, not a valid model-selection baseline
 
 Fair comparison result:
 
 - untuned Step 5 logistic test macro-F1: `0.397216`
 - tuned raw-window logistic test macro-F1: `0.390383`
+- raw-window logistic test-oracle macro-F1: `0.410148`
 - best frozen latent head: `last_snapshot_repeat@40`
 - best frozen latent head selection basis: `posthoc_best_test_macro_f1_from_step7`
 - best frozen latent head test macro-F1: `0.435540`
 - pca@128 frozen latent head test macro-F1: `0.362361`
 - best frozen latent head delta vs tuned raw logistic: `0.045157`
+- best frozen latent head delta vs raw logistic test-oracle: `0.025392`
 
 Paired bootstrap result:
 

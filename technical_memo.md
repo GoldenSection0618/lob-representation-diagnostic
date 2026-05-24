@@ -109,10 +109,13 @@ Fair transfer comparison on the test split:
 | --- | --- | --- | ---: | ---: | ---: |
 | raw_window_logistic_untuned | raw window baseline | fixed Step 5 logistic | 0.3972 | 0.1007 | 0.0068 |
 | raw_window_logistic_tuned | raw window tuned control | val macro-F1, MCC/log-loss tie-break | 0.3904 | 0.0978 | 0.0000 |
+| raw_window_logistic_test_oracle | raw window oracle reference | post hoc best raw-grid test macro-F1 | 0.4101 | 0.1473 | 0.0198 |
 | best_frozen_latent_head | frozen latent head | post hoc best Step 7 test macro-F1 | 0.4355 | 0.2579 | 0.0452 |
 | pca@128_frozen_latent_head | frozen latent head | reconstruction-best test normalized MSE | 0.3624 | 0.1281 | -0.0280 |
 
 The tuned raw-window logistic control selected `C=0.1`. The post hoc best frozen-latent head (`last_snapshot_repeat@40`) remains ahead of both raw-window logistic controls on test macro-F1. Paired bootstrap on the same test samples gives delta `0.0452` for best frozen latent versus tuned raw logistic, with 95% CI `[0.0082, 0.0823]` and `fraction_delta_gt_0=0.9930`.
+
+The raw-window logistic C-grid also contains a test-oracle point at `C=0.01` with test macro-F1 `0.4101`. That value is useful transparency, but it is not a valid model-selection baseline because C was selected after looking at test performance. It remains below the post hoc best frozen-latent head (`0.4355`).
 
 This is still descriptive: `best_frozen_latent_head` is selected post hoc from Step 7 test macro-F1, not pre-registered before looking at test performance.
 

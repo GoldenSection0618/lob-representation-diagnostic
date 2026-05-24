@@ -233,12 +233,15 @@ def fit_raw_logistic_grid(
 
 def build_fair_transfer_comparison(
     step5_metrics: pd.DataFrame,
+    raw_grid: pd.DataFrame,
     raw_tuned_metrics: pd.DataFrame,
     step7_latent_metrics: pd.DataFrame,
     c_grid_text: str,
 ) -> Tuple[pd.DataFrame, str]:
     test_latents = step7_latent_metrics[step7_latent_metrics["split"] == "test"].copy()
     best_variant = str(test_latents.sort_values("macro_f1", ascending=False).iloc[0]["representation_variant"])
+    oracle = raw_grid[raw_grid["split"] == "test"].sort_values("macro_f1", ascending=False).head(1).copy()
+    oracle["variant"] = "raw_window_logistic_test_oracle"
     variants = {
         "majority": {
             "source": "raw_window_baseline",
@@ -271,6 +274,16 @@ def build_fair_transfer_comparison(
             "selection_metric": "val_macro_f1_tie_mcc_log_loss",
             "selection_basis": "selected_by_val_macro_f1_tie_mcc_log_loss",
             "rows": raw_tuned_metrics.assign(variant="raw_window_logistic_tuned"),
+        },
+        "raw_window_logistic_test_oracle": {
+            "source": "raw_window_oracle_reference",
+            "feature_source": "raw_window_flattened",
+            "uses_validation_tuning": False,
+            "tuning_grid": c_grid_text,
+            "selected_C": float(oracle["C"].iloc[0]),
+            "selection_metric": "test_macro_f1_oracle_not_selection_valid",
+            "selection_basis": "posthoc_best_test_macro_f1_from_raw_logistic_grid",
+            "rows": oracle,
         },
         "best_frozen_latent_head": {
             "source": "frozen_latent_head",
@@ -538,6 +551,7 @@ def build_final_claim_table(
         (bootstrap["comparison"] == "best_frozen_latent_head_vs_raw_window_logistic_tuned")
         & (bootstrap["metric"] == "macro_f1")
     ].iloc[0]
+    oracle_row = test.loc["raw_window_logistic_test_oracle"]
     if best_vs_tuned > 0 and float(c3_boot["ci_2_5"]) > 0:
         c3_status = "supported"
     elif best_vs_tuned > 0:
@@ -591,7 +605,11 @@ def build_final_claim_table(
             "metric_or_check": "delta_macro_f1_vs_raw_tuned and bootstrap ci_2_5",
             "result": f"delta={best_vs_tuned:.6f}; ci_2_5={float(c3_boot['ci_2_5']):.6f}",
             "status": c3_status,
-            "caveat": "supported if delta > 0 and bootstrap ci_2_5 > 0; partially_supported if delta > 0 but ci includes 0.",
+            "caveat": (
+                "The tuned raw control is selected by validation macro-F1. "
+                f"The raw-grid test-oracle point C={float(oracle_row['selected_C']):g} reaches test macro-F1 {float(oracle_row['macro_f1']):.4f} "
+                "but is post hoc and remains below the best frozen latent head."
+            ),
         },
         {
             "claim_id": "C4",
@@ -655,10 +673,15 @@ def plot_fair_transfer(fair: pd.DataFrame, bootstrap: pd.DataFrame, fig_path: Pa
         (bootstrap["comparison"] == "best_frozen_latent_head_vs_raw_window_logistic_tuned")
         & (bootstrap["metric"] == "macro_f1")
     ].iloc[0]
+    oracle = fair[(fair["split"] == "test") & (fair["variant"] == "raw_window_logistic_test_oracle")].iloc[0]
+    plt.scatter([1], [oracle["macro_f1"]], marker="x", s=80, label="raw logistic test-oracle")
+    plt.legend(fontsize=8)
     plt.text(
         0.02,
         0.95,
-        f"best latent - tuned raw = {boot['delta_observed']:.4f}\n95% CI [{boot['ci_2_5']:.4f}, {boot['ci_97_5']:.4f}]",
+        f"best latent - tuned raw = {boot['delta_observed']:.4f}\n"
+        f"95% CI [{boot['ci_2_5']:.4f}, {boot['ci_97_5']:.4f}]\n"
+        f"raw logistic test-oracle C={oracle['selected_C']:g}: {oracle['macro_f1']:.4f} (not selection-valid)",
         transform=plt.gca().transAxes,
         va="top",
     )
@@ -742,6 +765,7 @@ def write_summary(
     test = fair[fair["split"] == "test"].set_index("variant")
     raw_tuned = test.loc["raw_window_logistic_tuned"]
     raw_untuned = test.loc["raw_window_logistic_untuned"]
+    raw_oracle = test.loc["raw_window_logistic_test_oracle"]
     best = test.loc["best_frozen_latent_head"]
     delta = float(best["macro_f1"] - raw_tuned["macro_f1"])
     val_macro = float(grid[(grid["C"] == selected_c) & (grid["split"] == "val")]["macro_f1"].iloc[0])
@@ -773,13 +797,16 @@ def write_summary(
         f"- test macro-F1 at selected C: `{raw_tuned['macro_f1']:.6f}`",
         f"- untuned Step 5 raw logistic test macro-F1: `{raw_untuned['macro_f1']:.6f}`",
         f"- tuned raw-window logistic beats untuned raw-window logistic: `{bool(raw_tuned['macro_f1'] > raw_untuned['macro_f1'])}`",
+        f"- raw-window logistic test-oracle best C: `{raw_oracle['selected_C']:g}` with test macro-F1 `{raw_oracle['macro_f1']:.6f}`; this is not selection-valid.",
         "",
         "## Fair Transfer Comparison",
         f"- best frozen latent head test macro-F1: `{best['macro_f1']:.6f}`",
         f"- tuned raw-window logistic test macro-F1: `{raw_tuned['macro_f1']:.6f}`",
         f"- delta: `{delta:.6f}`",
         f"- best frozen latent head still beats tuned raw-window logistic: `{bool(delta > 0)}`",
+        f"- best frozen latent head also remains above the raw-window logistic test-oracle point by `{float(best['macro_f1'] - raw_oracle['macro_f1']):.6f}` macro-F1.",
         "- best_frozen_latent_head is selected post hoc from Step 7 test macro-F1, so the paired bootstrap comparison is descriptive rather than a fully pre-registered confirmatory test.",
+        "- The raw-window logistic grid contains a test-oracle best point at C=0.01 with test macro-F1 0.4101. This is not used as the selected tuned baseline because C is selected by validation macro-F1, but it remains below the post hoc best frozen latent head at 0.4355.",
         "",
         "## Paired Bootstrap Delta",
         f"- best latent vs tuned raw logistic macro-F1 delta: `{boot['delta_observed']:.6f}`",
@@ -886,7 +913,7 @@ def main() -> int:
         selection_metric=args.selection_metric,
     )
     fair, best_latent_variant = build_fair_transfer_comparison(
-        step5_metrics, tuned_metrics, step7_latent_metrics, args.c_grid
+        step5_metrics, grid, tuned_metrics, step7_latent_metrics, args.c_grid
     )
 
     selection_basis = {
