@@ -10,11 +10,11 @@ The project separates reconstruction quality from predictive usefulness. A recon
 
 This memo is not a claim of full LOBench reproduction. It does not claim state-of-the-art prediction or reconstruction performance. It does not evaluate trading profitability, execution quality, or portfolio performance. It also does not claim general market predictability across symbols, horizons, dates, or regimes.
 
-The current evidence is limited to one symbol, one horizon, one stride-4 subset, and one boundary-purged chronological split.
+The current evidence is limited to one symbol, one horizon, and one stride-4 subset. Steps 3 through 9 use a boundary-purged chronological split as the conservative baseline. Step 10 adds a lightweight split-protocol decomposition on the same sample universe.
 
 ## 2. Experimental Setup
 
-The fixed protocol is:
+The baseline data setup is:
 
 | Field | Value |
 | --- | --- |
@@ -25,13 +25,13 @@ The fixed protocol is:
 | Feature dimension | `40` |
 | Input tensor | `(N, 100, 40)` |
 | Sample stride | `4` |
-| Split protocol | Boundary-purged chronological `70/15/15` |
+| Conservative baseline split | Boundary-purged chronological `70/15/15` |
 | Total samples | `7952` |
 | Train samples | `5600` |
 | Validation samples | `1200` |
 | Test samples | `1152` |
 
-The split is chronological and boundary-purged. Historical rows overlapping train/validation and validation/test boundaries are removed, so adjacent windows do not leak across split boundaries. Random split and no-purge chronological split are excluded from the main evidence chain.
+The baseline split is chronological and boundary-purged. Historical rows overlapping train/validation and validation/test boundaries are removed, so adjacent windows do not leak across split boundaries. Step 10 then treats split protocol as a diagnostic variable on the same kept sample universe.
 
 External data remains local and is not committed. Generated data arrays and latent arrays are also not part of the repository evidence. The committed artifacts are result tables, audit artifacts, summaries, run configs, and figures.
 
@@ -67,12 +67,13 @@ Robustness controls:
 - Paired bootstrap on the same test samples.
 - Rank sensitivity after excluding `last_snapshot_repeat@40`.
 - Last-snapshot sensitivity, noting that `last_snapshot_repeat@40` has zero last-step reconstruction error by construction.
+- Split-protocol decomposition, including naive random window split, blocked random with embargo, and a no-purge chronological diagnostic.
 
 ## 4. Results
 
 ### Prediction Baselines
 
-Step 5 trains prediction-only baselines on the locked stride-4 subset. These baselines set the raw-window prediction reference and do not use reconstruction features.
+Step 5 trains prediction-only baselines on the stride-4 subset. These baselines set the raw-window prediction reference and do not use reconstruction features.
 
 Test split:
 
@@ -198,6 +199,36 @@ Under this policy, the validation-selected latent variant is `last_snapshot_repe
 
 This reduces the post hoc representation-selection caveat for this run because validation macro-F1 and test macro-F1 select the same latent variant. It does not prove transferability in general. The candidate set is fixed by earlier steps, the evidence remains one symbol and one horizon, and the bootstrap remains a descriptive paired test-sample check.
 
+### Split Protocol Decomposition
+
+Step 10 treats split protocol as an experimental variable rather than a fixed background choice. The goal is to distinguish temporal or regime mixing from near-neighbor exposure caused by overlapping LOB windows.
+
+Protocols compared:
+
+| Protocol | Runs | Role |
+| --- | ---: | --- |
+| `chronological_purged` | 1 | Conservative baseline used by Steps 3-9 |
+| `random_window_naive` | 5 seeds | Optimistic window-level random split |
+| `random_block_purged` | 5 seeds | Block-level random split with embargo |
+| `chronological_no_purge` | 1 | Boundary-purge diagnostic on the existing kept sample universe |
+
+The blocked-random protocol drops embargoed boundary samples, so its train/validation/test counts vary by seed and are smaller than the full 7952-sample universe.
+
+The split-integrity audit shows the core distinction before any performance interpretation:
+
+| Protocol | Mean Test Overlap Risk | Mean Test k5 Near-Neighbor Risk | Interpretation |
+| --- | ---: | ---: | --- |
+| `chronological_purged` | 0.0000 | 0.0000 | Conservative baseline |
+| `random_window_naive` | 1.0000 | 1.0000 | High near-neighbor exposure |
+| `random_block_purged` | 0.0000 | 0.0000 | Near-neighbor exposure controlled in this audit |
+| `chronological_no_purge` | 0.0000 | 0.0000 | Identical on the current kept sample universe |
+
+Performance contrasts reinforce the integrity audit. For the run-level tuned raw-window logistic control, `random_window_naive` improves mean test macro-F1 by `0.0583` over `chronological_purged`, while `random_block_purged` improves it by only `0.0004`. For the validation-selected latent head, the corresponding deltas are `0.0657` and `0.0139`. The contrast `random_window_naive - random_block_purged` is therefore the clearest evidence that the naive-random gain is mainly tied to near-neighbor exposure in this lightweight diagnostic panel.
+
+Representation selection is stable across the Step 10 protocol runs: validation macro-F1 selects `last_snapshot_repeat@40` in every run, the test-posthoc best is also `last_snapshot_repeat@40`, and reconstruction-best remains `pca@128`. The rank-mismatch pattern therefore persists in the lightweight panel, but it should still be interpreted with the known last-snapshot structural caveat.
+
+Step 10 does not repeat the full Step 6 to Step 9 representation panel. It fits train-only `PCA@32`, `PCA@128`, and `last_snapshot_repeat@40` diagnostics inside each split run, plus run-local logistic C-grid heads. This keeps the step focused on protocol decomposition rather than model expansion.
+
 ## 5. Failure and Mismatch Analysis
 
 The final interpretation is conservative.
@@ -216,7 +247,7 @@ The resulting claim is:
 - Supported within this subset: the validation-selected frozen latent head beats the fixed and tuned raw-window logistic controls on test macro-F1.
 - Partially supported: reconstruction-best and prediction-best variants differ across all latent variants.
 - Partially supported: overall reconstruction MSE is not a reliable standalone downstream proxy in this controlled run.
-- Scope-limited: all conclusions are restricted to `sz000001`, `trend5`, the stride-4 subset, and the boundary-purged chronological split.
+- Scope-limited: all conclusions are restricted to `sz000001`, `trend5`, and the stride-4 subset. Split-protocol conclusions are Step 10 diagnostics, not recommendations to use naive random split as an evaluation protocol.
 
 ## 6. Limitations
 
@@ -228,9 +259,9 @@ The main limitations are:
 - No multi-symbol robustness.
 - No multi-horizon robustness.
 - No trading PnL, execution, slippage, cost, or portfolio evaluation.
-- No random-split or no-purge ablation in the main evidence chain.
+- Step 10 adds split-protocol diagnostics, but no multi-symbol or multi-horizon split robustness.
 - No cross-regime or multi-date stress test.
-- Reconstruction encoders are not retrained in Step 7, Step 8, or Step 9.
+- Reconstruction encoders are not retrained in Step 7, Step 8, or Step 9. Step 10 fits only a lightweight protocol-diagnostic PCA/last-snapshot panel inside each split run.
 - Step 9 selects the frozen latent head by validation macro-F1, but the candidate set is fixed by earlier steps.
 - The paired bootstrap comparison is descriptive, not fully pre-registered confirmatory evidence.
 - The raw logistic test-oracle point is a transparency reference, not a selection-valid baseline.
@@ -248,4 +279,5 @@ Future extensions should tighten the claim before broadening it:
 - Test top-of-book-focused reconstruction objectives.
 - Compare aggregate reconstruction loss against local book-state diagnostics such as spread, midprice, top-of-book error, and volume-sum/difference error.
 - Evaluate whether last-snapshot-like representations remain predictive after stricter controls or alternative labels.
+- Extend split-protocol decomposition to additional symbols and horizons before treating it as general evidence.
 - Add trading-oriented evaluation only after the diagnostic relationship between reconstruction and prediction is better established.

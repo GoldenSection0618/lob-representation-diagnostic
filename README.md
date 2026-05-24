@@ -1,6 +1,6 @@
 # LOB Representation Diagnostic
 
-This repo is a diagnostic PoW testing whether better LOB reconstruction transfers to downstream `trend5` prediction under a leakage-aware chronological split.
+This repo is a diagnostic PoW testing whether better LOB reconstruction transfers to downstream `trend5` prediction, and how split protocol choices affect that conclusion.
 
 ## Main Finding
 
@@ -9,12 +9,13 @@ This repo is a diagnostic PoW testing whether better LOB reconstruction transfer
 - After excluding `last_snapshot_repeat@40`, the rank mismatch weakens and `pca@128` becomes both reconstruction-best and prediction-best.
 - Step 9 reduces the post hoc representation-selection caveat: validation macro-F1 and test macro-F1 both select `last_snapshot_repeat@40` in this run.
 - The validation-selected frozen latent head beats the tuned raw-window logistic control in this subset, but this remains descriptive rather than general evidence.
+- Step 10 shows that naive random window-level splitting is optimistic in this subset: it produces full train/test near-neighbor exposure and materially higher macro-F1, while blocked random with purge removes that exposure and stays close to chronological performance.
 
 This is not a full LOBench reproduction, not a state-of-the-art claim, not a trading PnL study, and not a general market prediction claim.
 
 ## Protocol at a Glance
 
-| Field | Current main protocol |
+| Field | Setting |
 | --- | --- |
 | Dataset source | External LOBench A-share processed data |
 | Symbol | `sz000001` |
@@ -22,14 +23,15 @@ This is not a full LOBench reproduction, not a state-of-the-art claim, not a tra
 | Window | `100` |
 | Feature dimension | `40` |
 | Sample stride | `4` |
-| Split | Boundary-purged chronological `70/15/15` |
+| Conservative baseline split | Boundary-purged chronological `70/15/15` |
+| Step 10 split diagnostics | `random_window_naive`, `random_block_purged`, `chronological_no_purge` |
 | Samples | `7952` |
 | Train / val / test | `5600 / 1200 / 1152` |
 | Data policy | External data, generated tensors, checkpoints, and latent arrays are not committed |
 
 ## Evidence Snapshot
 
-The main evidence combines raw-window prediction baselines, reconstruction-only baselines, frozen-latent transfer, robustness checks, and a validation-selected representation audit.
+The main evidence combines raw-window prediction baselines, reconstruction-only baselines, frozen-latent transfer, robustness checks, a validation-selected representation audit, and split-protocol decomposition.
 
 | Evidence | Result | Caveat |
 | --- | --- | --- |
@@ -42,6 +44,8 @@ The main evidence combines raw-window prediction baselines, reconstruction-only 
 | Best reconstruction variant | `pca@128`, test normalized MSE `0.1838` | Best reconstruction is not best prediction across all variants |
 | Rank sensitivity | excluding `last_snapshot_repeat@40` makes `pca@128` both reconstruction-best and prediction-best | Weakens the broad rank-mismatch claim |
 | Step 7 join validation | `70560` joined rows, zero duplicate joined keys | Supports sample-level alignment contract |
+| Step 10 integrity audit | naive random train/test overlap risk `1.0000`; blocked random overlap risk `0.0000` | Random split result is diagnostic, not recommended evaluation |
+| Step 10 raw tuned contrast | naive random improves test macro-F1 by `0.0583`; blocked random improves by `0.0004` | Suggests most naive-random gain comes from near-neighbor exposure, not pure regime mixing |
 
 ![Fair transfer macro-F1 with CI](figures/step8_fairness_robustness/fair_transfer_macro_f1_with_ci.png)
 
@@ -61,9 +65,11 @@ The main evidence combines raw-window prediction baselines, reconstruction-only 
 | --- | --- |
 | [technical_memo.md](technical_memo.md) | Final technical memo and conservative interpretation |
 | [docs/artifact_index.md](docs/artifact_index.md) | Primary and supporting evidence files |
-| [docs/reproduction_guide.md](docs/reproduction_guide.md) | Commands to reproduce Step 3 to Step 9 |
+| [docs/reproduction_guide.md](docs/reproduction_guide.md) | Commands to reproduce Step 3 to Step 10 |
 | [results/step9_validation_selection_audit/step9_manifest.json](results/step9_validation_selection_audit/step9_manifest.json) | Current validation-selected representation audit |
 | [results/step9_validation_selection_audit/fair_transfer_comparison.csv](results/step9_validation_selection_audit/fair_transfer_comparison.csv) | Current fair transfer comparison after validation selection |
+| [results/step10_split_protocol_decomposition/protocol_contrasts.csv](results/step10_split_protocol_decomposition/protocol_contrasts.csv) | Split protocol decomposition contrasts |
+| [results/step10_split_protocol_decomposition/split_integrity_audit.csv](results/step10_split_protocol_decomposition/split_integrity_audit.csv) | Overlap and near-neighbor risk audit by split protocol |
 | [results/step8_fairness_robustness/final_claim_table.csv](results/step8_fairness_robustness/final_claim_table.csv) | Step 8 claim table before the Step 9 representation-selection audit |
 | [results/step7_alignment/join_contract.json](results/step7_alignment/join_contract.json) | Join validation |
 | [docs/data_note.md](docs/data_note.md) | Data contract, subset facts, and split policy |
@@ -80,7 +86,7 @@ Reproduction commands are collected in `docs/reproduction_guide.md`. The pipelin
 | Symbol coverage | One symbol, `sz000001` |
 | Horizon coverage | One label horizon, `trend5` |
 | Sampling protocol | One stride-4 subset |
-| Split protocol | Boundary-purged chronological only |
+| Split protocol | Step 10 compares chronological, naive random, blocked random, and no-purge diagnostics on the same subset |
 | Multi-symbol robustness | Not evaluated |
 | Multi-horizon robustness | Not evaluated |
 | Trading PnL | Not evaluated |

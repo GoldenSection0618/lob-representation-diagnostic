@@ -1,13 +1,14 @@
 # Artifact Index
 
-This index maps committed artifacts to the current main protocol:
+This index maps committed artifacts to the current evidence chain:
 
 - symbol: `sz000001`
 - label: `trend5`
 - window length: `100`
 - feature dimension: `40`
 - sample stride: `4`
-- split: boundary-purged chronological `70/15/15`
+- conservative baseline split: boundary-purged chronological `70/15/15`
+- Step 10 split diagnostics: `random_window_naive`, `random_block_purged`, `chronological_no_purge`
 
 Raw datasets, generated NumPy arrays, local latent arrays, and checkpoints are not committed.
 
@@ -107,10 +108,24 @@ Primary files:
 - `paired_bootstrap_delta.csv`: paired test-sample bootstrap deltas for the validation-selected latent head.
 - `step9_manifest.json`: current validation-selected representation audit, selection policy, selected variants, bootstrap status, and interpretation.
 
+### Step 10: Split Protocol Decomposition
+
+Directory: `results/step10_split_protocol_decomposition/`
+
+Primary files:
+
+- `protocol_manifest.json`: Step 10 purpose, protocols, random seeds, model panel, and interpretation rules.
+- `protocol_runs.csv`: one row per protocol run, including seeds, counts, purge policy, block policy, and notes.
+- `split_integrity_audit.csv`: overlap and near-neighbor risk audit by run.
+- `model_performance_by_run.csv`: run-local model performance for majority, raw-window logistic controls, and lightweight frozen-latent references.
+- `selection_alignment_by_run.csv`: reconstruction-best, validation-selected, and test-posthoc latent selection by run.
+- `protocol_contrasts.csv`: protocol-level contrasts for README and memo interpretation.
+- `protocol_summary.csv`: aggregate protocol by model summary.
+
 ## Supporting Diagnostics
 
 Supporting files include classification reports, prediction distributions, level-wise reconstruction errors, feature-group errors, temporal errors, error quantile responses, failure-mode deltas, and model-level correlations. They are retained for auditability but are not the shortest path through the core claim.
 
 ## Current Claim Boundary
 
-The current evidence is limited to one symbol, one horizon, and one stride-4 subset. It does not claim SOTA, trading profitability, cross-symbol robustness, or cross-horizon generality.
+The current evidence is limited to one symbol, one horizon, and one stride-4 subset. Step 10 compares split protocols only within that same subset. It does not claim SOTA, trading profitability, cross-symbol robustness, or cross-horizon generality.

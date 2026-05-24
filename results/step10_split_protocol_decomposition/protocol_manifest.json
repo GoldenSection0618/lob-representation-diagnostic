@@ -1,0 +1,67 @@
+{
+  "step": "step10_split_protocol_decomposition",
+  "purpose": "Treat split protocol as an experimental variable and decompose random split effects into temporal mixing, near-neighbor exposure, and boundary-purge components.",
+  "protocols": [
+    "chronological_no_purge",
+    "chronological_purged",
+    "random_block_purged",
+    "random_window_naive"
+  ],
+  "random_seeds": [
+    42,
+    43,
+    44,
+    45,
+    46
+  ],
+  "primary_metric": "macro_f1",
+  "model_panel": [
+    "majority",
+    "raw_window_logistic_untuned",
+    "raw_window_logistic_tuned",
+    "raw_window_logistic_test_oracle",
+    "reconstruction_best_latent_head",
+    "validation_selected_latent_head",
+    "test_posthoc_best_latent_head"
+  ],
+  "head_training_policy": {
+    "classifier": "LogisticRegression",
+    "solver": "saga",
+    "max_iter": 300,
+    "tol": 0.01,
+    "class_weight": "balanced",
+    "c_grid": [
+      0.01,
+      0.1,
+      1.0,
+      10.0
+    ],
+    "scaler": "train-only StandardScaler inside each protocol run",
+    "selection": "validation macro-F1, tie MCC, tie log_loss"
+  },
+  "protocol_interpretation_rules": {
+    "random_window_naive_minus_chronological_purged": "temporal mixing + near-neighbor exposure + purge differences",
+    "random_block_purged_minus_chronological_purged": "temporal or regime mixing with near-neighbor risk reduced",
+    "random_window_naive_minus_random_block_purged": "near-neighbor exposure / overlapping-window effect proxy",
+    "chronological_no_purge_minus_chronological_purged": "boundary purge effect proxy on existing kept sample universe"
+  },
+  "full_representation_retraining_performed": false,
+  "lightweight_panel_used": true,
+  "lightweight_panel_note": "Step 10 fits train-only PCA@32/PCA@128 and last_snapshot_repeat heads per split run. It does not repeat the full Step 6 MLP-AE representation panel.",
+  "split_universe_note": "All protocols operate on the existing Step 3 kept 7952-sample subset; Step 3 dropped boundary samples are not restored for chronological_no_purge.",
+  "main_outputs": {
+    "protocol_summary": "results/step10_split_protocol_decomposition/protocol_summary.csv",
+    "protocol_contrasts": "results/step10_split_protocol_decomposition/protocol_contrasts.csv",
+    "split_integrity_audit": "results/step10_split_protocol_decomposition/split_integrity_audit.csv",
+    "model_performance_by_run": "results/step10_split_protocol_decomposition/model_performance_by_run.csv",
+    "selection_alignment_by_run": "results/step10_split_protocol_decomposition/selection_alignment_by_run.csv"
+  },
+  "remaining_limitations": [
+    "single symbol",
+    "single horizon trend5",
+    "single stride-4 sample universe",
+    "lightweight representation panel only",
+    "no MLP-AE retraining",
+    "no trading PnL"
+  ]
+}

@@ -969,3 +969,87 @@ Scope guard:
 - Single stride-4 boundary-purged chronological subset.
 - Candidate set fixed by earlier steps.
 - No random split, no no-purge split, no multi-symbol or multi-horizon expansion.
+
+## Step 10: Split Protocol Decomposition
+
+Purpose:
+
+- Treat split protocol as an experimental variable.
+- Decompose naive random split gains into temporal mixing versus near-neighbor exposure.
+- Keep the analysis within the existing single-symbol, single-horizon, stride-4 sample universe.
+- Avoid new model families, full LOBench reproduction, multi-symbol expansion, multi-horizon expansion, or trading PnL.
+
+Command:
+
+```bash
+mamba run -n lob python scripts/07_split_protocol_decomposition.py \
+  --subset-dir data/processed/minimal_subset \
+  --output-dir results/step10_split_protocol_decomposition \
+  --random-seeds 42,43,44,45,46 \
+  --block-size 512 \
+  --embargo-size 25
+```
+
+Protocols:
+
+- `chronological_purged`: conservative baseline used by Steps 3-9.
+- `random_window_naive`: sample-level random split over seeds `42,43,44,45,46`.
+- `random_block_purged`: contiguous block random split with embargo over the same seeds.
+- `chronological_no_purge`: diagnostic approximation on the existing kept sample universe.
+
+Model panel:
+
+- `majority`
+- `raw_window_logistic_untuned`
+- `raw_window_logistic_tuned`
+- `raw_window_logistic_test_oracle`
+- `reconstruction_best_latent_head`
+- `validation_selected_latent_head`
+- `test_posthoc_best_latent_head`
+
+Lightweight representation panel:
+
+- `last_snapshot_repeat@40`
+- `pca@32`
+- `pca@128`
+
+Split-integrity result:
+
+- `random_window_naive` mean test overlap risk: `1.0000`
+- `random_window_naive` mean test k5 near-neighbor risk: `1.0000`
+- `random_block_purged` mean test overlap risk: `0.0000`
+- `random_block_purged` mean test k5 near-neighbor risk: `0.0000`
+- `chronological_purged` mean test overlap risk: `0.0000`
+
+Performance contrasts:
+
+- `random_window_naive` vs `chronological_purged`, raw tuned macro-F1 delta: `0.058254`
+- `random_block_purged` vs `chronological_purged`, raw tuned macro-F1 delta: `0.000367`
+- `random_window_naive` vs `random_block_purged`, raw tuned macro-F1 delta: `0.057887`
+- `random_window_naive` vs `chronological_purged`, validation-selected latent macro-F1 delta: `0.065680`
+- `random_block_purged` vs `chronological_purged`, validation-selected latent macro-F1 delta: `0.013874`
+
+Selection alignment:
+
+- `best_reconstruction_variant`: `pca@128` in every Step 10 run.
+- `validation_selected_latent_variant`: `last_snapshot_repeat@40` in every Step 10 run.
+- `test_posthoc_best_latent_variant`: `last_snapshot_repeat@40` in every Step 10 run.
+- Rank mismatch status remains `prediction_selection_stable_reconstruction_mismatch` in the lightweight Step 10 panel.
+
+Generated result files:
+
+- `results/step10_split_protocol_decomposition/protocol_manifest.json`
+- `results/step10_split_protocol_decomposition/protocol_runs.csv`
+- `results/step10_split_protocol_decomposition/split_integrity_audit.csv`
+- `results/step10_split_protocol_decomposition/model_performance_by_run.csv`
+- `results/step10_split_protocol_decomposition/selection_alignment_by_run.csv`
+- `results/step10_split_protocol_decomposition/protocol_contrasts.csv`
+- `results/step10_split_protocol_decomposition/protocol_summary.csv`
+
+Scope guard:
+
+- Step 10 does not modify Step 3 data construction.
+- Step 10 does not modify the existing Step 3 to Step 9 artifacts.
+- Step 10 uses random split only as an explicit diagnostic protocol.
+- Step 10 does not run multi-symbol or multi-horizon expansion.
+- Step 10 does not introduce new model families or trading evaluation.

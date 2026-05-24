@@ -1,6 +1,6 @@
 # Reproduction Guide
 
-This guide collects the current main-protocol commands. It assumes the external processed A-share dataset exists locally and is not committed to this repository.
+This guide collects the current main-protocol and diagnostic commands. It assumes the external processed A-share dataset exists locally and is not committed to this repository.
 
 External input:
 
@@ -117,6 +117,19 @@ mamba run -n lob python scripts/06_validation_selected_transfer.py \
   --seed 42
 ```
 
+## Step 10: Split Protocol Decomposition
+
+```bash
+mamba run -n lob python scripts/07_split_protocol_decomposition.py \
+  --subset-dir data/processed/minimal_subset \
+  --output-dir results/step10_split_protocol_decomposition \
+  --random-seeds 42,43,44,45,46 \
+  --block-size 512 \
+  --embargo-size 25
+```
+
+Step 10 uses the existing stride-4 sample universe and compares `chronological_purged`, `random_window_naive`, `random_block_purged`, and `chronological_no_purge`. It is a protocol-layer diagnostic, not a full Step 6 to Step 9 rerun.
+
 ## Validation
 
 ```bash
@@ -134,6 +147,6 @@ grep -R "MLPAutoencoderReconstructor" -n scripts/04_alignment_analysis.py script
 
 Interpretation:
 
-- `random_split` should not appear in active pipeline code.
-- `no-purge` should appear only in documentation or scope guard text.
+- `random_split` should not appear as an uncontrolled data module call.
+- `random_window_naive` and `chronological_no_purge` are expected in Step 10 as explicitly labeled diagnostics.
 - Step 7, Step 8, and Step 9 should not fit PCA or retrain MLP-AE reconstruction encoders.

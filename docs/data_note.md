@@ -75,10 +75,13 @@ The first downstream target is `trend5`; the other horizons are reserved for lat
 
 ## Split Policy
 
-The main split is boundary-purged chronological. The Step 3 subset already applies it, and Step 4 locked it as the current evaluation protocol.
-The main window sampling protocol uses `sample_stride=4`, aligned with the upstream LOBench-style A-share sampling convention. The earlier dense `sample_stride=1` run was a pilot and is no longer the active main evidence.
+Steps 3 through 9 use `chronological_purged` as the conservative baseline split. The Step 3 subset already applies the boundary-purged chronological assignment, and Step 4 documented that protocol for the main reconstruction and prediction evidence chain.
 
-The rule is intentionally conservative. LOB windows overlap heavily, so a plain random split can put near-neighbor windows into train and test. Even a chronological split needs boundary purge, otherwise adjacent segments can share historical rows through the sliding window.
+Step 10 extends the analysis by treating split protocol as an experimental variable. Random split is therefore a diagnostic protocol, not a recommended evaluation protocol. The comparison separates naive window-level randomization from blocked randomization with embargo so that performance changes can be interpreted alongside measurable near-neighbor risk.
+
+The main window sampling protocol uses `sample_stride=4`, aligned with the upstream LOBench-style A-share sampling convention. The earlier dense `sample_stride=1` run was a pilot and is no longer active main evidence.
+
+The conservative chronological rule is intentionally strict. LOB windows overlap heavily, so a plain random split can put near-neighbor windows into train and test. Even a chronological split needs boundary purge, otherwise adjacent segments can share historical rows through the sliding window.
 
 Current rules:
 
@@ -86,8 +89,9 @@ Current rules:
 - Windows are sampled every 4 label rows to reduce near-duplicate overlap while preserving chronological order.
 - Sample IDs and label rows do not overlap across splits.
 - Historical rows do not overlap across train/validation or validation/test boundaries.
-- Random split is auxiliary only if it is ever added.
-- No-purge chronological split is a future ablation, not the current main protocol.
+- Step 10 `random_window_naive` is an optimistic, leakage-prone diagnostic.
+- Step 10 `random_block_purged` is the key randomization control for reducing near-neighbor exposure.
+- Step 10 `chronological_no_purge` is a boundary-purge diagnostic on the existing kept sample universe.
 
 Default ratio: `70/15/15`.
 
@@ -134,5 +138,6 @@ The sample count is not the headline. The headline is that field mapping, labels
 ## Remaining Choices
 
 - Fixed subsets can stay on `row_limit + max_samples`, or move to explicit date ranges.
-- Boundary purge is mandatory for the current protocol; making it configurable belongs in ablation work.
+- Boundary purge remains the conservative baseline for chronological evaluation.
+- Split protocol comparisons should continue to report overlap and near-neighbor risk before model performance.
 - Multi-symbol experiments still need a decision on per-symbol versus cross-symbol normalization and splitting.
