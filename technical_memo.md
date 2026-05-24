@@ -33,7 +33,7 @@ The fixed protocol is:
 
 The split is chronological and boundary-purged. Historical rows overlapping train/validation and validation/test boundaries are removed, so adjacent windows do not leak across split boundaries. Random split and no-purge chronological split are excluded from the main evidence chain.
 
-External data remains local and is not committed. Generated data arrays and latent arrays are also not part of the repository evidence. The committed artifacts are lightweight metrics, summaries, run configs, and figures.
+External data remains local and is not committed. Generated data arrays and latent arrays are also not part of the repository evidence. The committed artifacts are result tables, audit artifacts, summaries, run configs, and figures.
 
 ## 3. Metrics and Evidence
 

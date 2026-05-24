@@ -91,6 +91,10 @@ Artifacts from Step 8 live under:
 
 For a file-by-file map of committed evidence, see `docs/artifact_index.md`. For the current 01-05 reproduction commands, see `docs/reproduction_guide.md`.
 
+## Reproduction
+
+The current main-protocol commands are collected in `docs/reproduction_guide.md`. The pipeline requires the external processed A-share dataset locally and does not commit raw data or generated tensors.
+
 ## Scope
 
 This repo does:
@@ -112,11 +116,9 @@ This repo does not:
 
 ## Layout
 
-- `configs/`: optional experiment configs added only when used.
 - `src/data/`: external data loading, field mapping, labels, subset construction.
 - `src/models/`: prediction and reconstruction baseline models.
 - `src/analysis/`: prediction/reconstruction metrics and diagnostic utilities.
-- `src/utils/`: shared utilities only when needed.
 - `scripts/`: runnable stage entry points.
 - `docs/`: protocol, artifact index, and reproduction notes.
 - `results/`: experiment outputs.
