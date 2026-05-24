@@ -43,27 +43,27 @@ The main evidence combines raw-window prediction baselines, reconstruction-only 
 
 ![Fair transfer macro-F1 with CI](figures/step8_fairness_robustness/fair_transfer_macro_f1_with_ci.png)
 
-Caption: The post hoc best frozen latent head remains above the tuned raw-window logistic control on test macro-F1 in this subset.
+*Caption: The post hoc best frozen latent head remains above the tuned raw-window logistic control on test macro-F1 in this subset.*
 
 ![Rank alignment](figures/step7_alignment/reconstruction_prediction_rank_alignment.png)
 
-Caption: Reconstruction rank and frozen-head prediction rank do not perfectly align across all variants, with the strongest mismatch driven by `last_snapshot_repeat@40`.
+*Caption: Reconstruction rank and frozen-head prediction rank do not perfectly align across all variants, with the strongest mismatch driven by `last_snapshot_repeat@40`.*
 
 ![Rank sensitivity by variant set](figures/step8_fairness_robustness/rank_sensitivity_by_variant_set.png)
 
-Caption: Rank mismatch weakens after excluding `last_snapshot_repeat@40`, so the mismatch claim is partial rather than general.
+*Caption: Rank mismatch weakens after excluding `last_snapshot_repeat@40`, so the mismatch claim is partial rather than general.*
 
 ## Evidence Map
 
 | File | Purpose |
 | --- | --- |
-| `technical_memo.md` | Final technical memo and conservative interpretation |
-| `docs/artifact_index.md` | Primary and supporting evidence files |
-| `docs/reproduction_guide.md` | Commands to reproduce Step 3 to Step 8 |
-| `results/step8_fairness_robustness/final_claim_table.csv` | Claim status table |
-| `results/step7_alignment/join_contract.json` | Join validation |
-| `docs/data_note.md` | Data contract, subset facts, and split policy |
-| `docs/environment.md` | Local runtime and external data assumptions |
+| [technical_memo.md](technical_memo.md) | Final technical memo and conservative interpretation |
+| [docs/artifact_index.md](docs/artifact_index.md) | Primary and supporting evidence files |
+| [docs/reproduction_guide.md](docs/reproduction_guide.md) | Commands to reproduce Step 3 to Step 8 |
+| [results/step8_fairness_robustness/final_claim_table.csv](results/step8_fairness_robustness/final_claim_table.csv) | Claim status table |
+| [results/step7_alignment/join_contract.json](results/step7_alignment/join_contract.json) | Join validation |
+| [docs/data_note.md](docs/data_note.md) | Data contract, subset facts, and split policy |
+| [docs/environment.md](docs/environment.md) | Local runtime and external data assumptions |
 
 ## Reproduction
 
