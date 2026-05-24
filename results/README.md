@@ -11,12 +11,12 @@ Primary evidence:
 | `step5_prediction_baselines/` | Prediction-only raw-window baselines and per-sample predictions |
 | `step6_reconstruction_baselines/` | Reconstruction-only baselines, LOBench-compatible reconstruction metrics, and per-sample reconstruction errors |
 | `step7_alignment/` | Reconstruction-prediction alignment, frozen latent-head transfer, and rank comparison |
-| `step8_fairness_robustness/` | Tuned raw-window controls, paired bootstrap, rank sensitivity, and final claim table |
+| `step8_fairness_robustness/` | Tuned raw-window controls, paired bootstrap, rank sensitivity, and Step 8 claim table |
 | `step9_validation_selection_audit/` | Validation-selected frozen latent transfer audit |
 | `step10_split_protocol_decomposition/` | Split-integrity audit and protocol-level performance contrasts |
 
 Entry points:
 
 - `summary.md`, where present, gives the compact stage result.
-- `run_config.json` records the command-level protocol and inputs.
+- `run_config.json` or manifest JSON files record command-level protocol, inputs, and scope.
 - `docs/artifact_index.md` maps primary and supporting artifacts across steps.

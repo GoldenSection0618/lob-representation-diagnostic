@@ -296,8 +296,7 @@ Future extensions should tighten the claim before broadening it:
 - Pre-register the full latent-head selection and evaluation protocol before running future test evaluations.
 - Repeat the protocol across additional A-share symbols.
 - Repeat the protocol across additional prediction horizons.
-- Step 11 should be a regime and failure-case diagnostic layer rather than part of the current primary evidence chain. It should slice prediction and reconstruction failures by spread, volatility, liquidity, top-of-book movement, imbalance-validity status, and other interpretable market-state variables, then test whether the reconstruction-prediction mismatch is concentrated in specific regimes.
-- Treat any Step 11 regime findings as explanatory evidence until repeated across additional symbols, horizons, and time periods.
+- Test regime-conditioned failure modes across spread, volatility, liquidity, imbalance validity, and top-of-book movement.
 - Test top-of-book-focused reconstruction objectives.
 - Compare aggregate reconstruction loss against local book-state diagnostics such as spread, midprice, top-of-book error, and volume-sum/difference error.
 - Evaluate whether last-snapshot-like representations remain predictive after stricter controls or alternative labels.
