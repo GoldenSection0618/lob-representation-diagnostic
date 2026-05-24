@@ -2,6 +2,8 @@
 
 This log keeps the decisions and run facts that matter for reproduction. It avoids narrative filler.
 
+Note: this file is a chronological archive. Early sections include superseded dense-window pilot facts from before the protocol was revised to LOBench-style `sample_stride=4`. Current main evidence is documented in `README.md`, `data_note.md`, `technical_memo.md`, `docs/evaluation_protocol.md`, and `docs/artifact_index.md`.
+
 ## Step 1: Repository Boundary
 
 I initialized `~/lob-representation-diagnostic` as an independent diagnostic repo. It is not a LOBench fork and not a full reproduction.

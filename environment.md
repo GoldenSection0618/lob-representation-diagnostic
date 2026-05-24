@@ -17,10 +17,9 @@ Core packages:
 - `pyyaml`
 - `tqdm`
 
-Training packages already installed in `lob`:
+Training package used by the local MLP baselines:
 
 - `torch==2.10.0`
-- `pytorch-lightning==2.6.1`
 
 ## Upstream Checkout
 

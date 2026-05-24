@@ -89,6 +89,8 @@ Artifacts from Step 8 live under:
 - `results/step8_fairness_robustness/`
 - `figures/step8_fairness_robustness/`
 
+For a file-by-file map of committed evidence, see `docs/artifact_index.md`. For the current 01-05 reproduction commands, see `docs/reproduction_guide.md`.
+
 ## Scope
 
 This repo does:
@@ -116,7 +118,7 @@ This repo does not:
 - `src/analysis/`: prediction/reconstruction metrics and diagnostic utilities.
 - `src/utils/`: shared utilities only when needed.
 - `scripts/`: runnable stage entry points.
-- `docs/`: protocol and methodology notes.
+- `docs/`: protocol, artifact index, and reproduction notes.
 - `results/`: experiment outputs.
 - `figures/`: plots and visual diagnostics.
 

@@ -1,3 +1,16 @@
 # Results
 
-This directory stores experiment outputs and result artifacts.
+This directory stores lightweight, committed experiment outputs. It does not store raw data, tensors, checkpoints, or local latent arrays.
+
+Primary evidence:
+
+- `step5_prediction_baselines/`: prediction-only raw-window baselines and per-sample predictions.
+- `step6_reconstruction_baselines/`: reconstruction-only baselines, LOBench-compatible reconstruction metrics, and per-sample reconstruction errors.
+- `step7_alignment/`: reconstruction-prediction alignment, frozen latent-head transfer, and rank comparison.
+- `step8_fairness_robustness/`: tuned raw-window controls, paired bootstrap, rank sensitivity, and final claim table.
+
+Entry points:
+
+- `summary.md` inside each step directory gives the compact stage result.
+- `run_config.json` records the command-level protocol and inputs.
+- `docs/artifact_index.md` maps primary and supporting artifacts across steps.

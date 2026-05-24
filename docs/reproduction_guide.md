@@ -1,0 +1,121 @@
+# Reproduction Guide
+
+This guide collects the current main-protocol commands. It assumes the external processed A-share dataset exists locally and is not committed to this repository.
+
+External input:
+
+- `~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv`
+
+Runtime convention:
+
+- Use `mamba run -n lob python ...` when the `lob` environment is available.
+- Keep raw data, NumPy arrays, latent arrays, and checkpoints out of git.
+
+## Step 3: Build Stride-4 Subset
+
+```bash
+mamba run -n lob python scripts/01_prepare_data.py \
+  --input-csv ~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv \
+  --symbol sz000001 \
+  --output-dir data/processed/minimal_subset \
+  --window-len 100 \
+  --label-horizon 5 \
+  --threshold 0.0001 \
+  --split-ratio 70/15/15 \
+  --row-limit 50000 \
+  --max-samples 8000 \
+  --sample-stride 4
+```
+
+Expected current subset facts:
+
+- total samples: `7952`
+- split sizes: train `5600`, val `1200`, test `1152`
+- boundary drops: `48`
+
+## Step 5: Prediction Baselines
+
+```bash
+mamba run -n lob python scripts/02_prediction_baselines.py \
+  --subset-dir data/processed/minimal_subset \
+  --output-dir results/step5_prediction_baselines \
+  --figures-dir figures/step5_prediction_baselines \
+  --seed 42 \
+  --models majority,logistic_regression,mlp \
+  --max-epochs 100 \
+  --batch-size 256 \
+  --device auto
+```
+
+## Step 6: Reconstruction Baselines and Latents
+
+```bash
+mamba run -n lob python scripts/03_reconstruction_baselines.py \
+  --subset-dir data/processed/minimal_subset \
+  --output-dir results/step6_reconstruction_baselines \
+  --figures-dir figures/step6_reconstruction_baselines \
+  --artifact-dir artifacts/step6_reconstruction_baselines \
+  --seed 42 \
+  --models train_mean_window,last_snapshot_repeat,pca,mlp_ae \
+  --pca-latent-dims 8,16,32,64,128 \
+  --mlp-latent-dims 16,32,64 \
+  --max-epochs 100 \
+  --batch-size 256 \
+  --device auto \
+  --save-latents
+```
+
+Local latent arrays are required by Step 7 but remain ignored under `artifacts/`.
+
+## Step 7: Reconstruction-Prediction Alignment
+
+```bash
+mamba run -n lob python scripts/04_alignment_analysis.py \
+  --step5-dir results/step5_prediction_baselines \
+  --step6-dir results/step6_reconstruction_baselines \
+  --latent-artifact-dir artifacts/step6_reconstruction_baselines/latents \
+  --output-dir results/step7_alignment \
+  --figures-dir figures/step7_alignment \
+  --seed 42 \
+  --head-c-grid 0.01,0.1,1.0,10.0 \
+  --primary-prediction-model-for-sample-analysis logistic_regression \
+  --selection-metric macro_f1
+```
+
+## Step 8: Fairness and Robustness
+
+```bash
+mamba run -n lob python scripts/05_fairness_robustness.py \
+  --subset-dir data/processed/minimal_subset \
+  --step5-dir results/step5_prediction_baselines \
+  --step6-dir results/step6_reconstruction_baselines \
+  --step7-dir results/step7_alignment \
+  --output-dir results/step8_fairness_robustness \
+  --figures-dir figures/step8_fairness_robustness \
+  --seed 42 \
+  --c-grid 0.01,0.1,1.0,10.0 \
+  --bootstrap-iterations 1000 \
+  --selection-metric macro_f1 \
+  --primary-metric macro_f1
+```
+
+## Validation
+
+```bash
+python -m compileall src scripts
+```
+
+Protocol guard checks:
+
+```bash
+grep -R "random_split" -n src scripts || true
+grep -R "no-purge" -n src scripts || true
+grep -R "fit.*PCA" -n scripts/04_alignment_analysis.py scripts/05_fairness_robustness.py src/analysis || true
+grep -R "MLPAutoencoderReconstructor" -n scripts/04_alignment_analysis.py scripts/05_fairness_robustness.py src/analysis || true
+```
+
+Interpretation:
+
+- `random_split` should not appear in active pipeline code.
+- `no-purge` should appear only in documentation or scope guard text.
+- Step 7 and Step 8 should not fit PCA or retrain MLP-AE reconstruction encoders.
