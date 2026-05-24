@@ -99,9 +99,14 @@ Reproduction commands are collected in `docs/reproduction_guide.md`. The pipelin
 | Split protocol | Step 10 compares chronological, naive random, blocked random, and no-purge diagnostics on the same subset |
 | Multi-symbol robustness | Not evaluated |
 | Multi-horizon robustness | Not evaluated |
+| Regime / failure-case diagnostics | Deferred to future work as Step 11; not part of the current evidence chain |
 | Trading PnL | Not evaluated |
 | Best frozen latent head | Validation-selected in Step 9; candidate set fixed by earlier steps |
 | Bootstrap comparison | Descriptive, not fully pre-registered confirmatory evidence |
+
+## Future Work
+
+The next natural extension is a regime and failure-case diagnostic layer, deferred here as Step 11 rather than included in the current evidence chain. It should slice errors by interpretable market-state variables such as spread, volatility, liquidity, imbalance validity, and top-of-book movement, then test whether the reconstruction-prediction mismatch is concentrated in specific regimes. That extension should be treated as explanatory analysis, not as new primary evidence, until repeated across additional symbols and horizons.
 
 ## Repository Layout
 
