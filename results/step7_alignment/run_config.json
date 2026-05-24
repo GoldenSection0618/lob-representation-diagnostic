@@ -45,6 +45,7 @@
     10.0
   ],
   "head_selection_metric": "macro_f1",
+  "latent_path_resolution": "manifest absolute path first, fallback to --latent-artifact-dir / basename",
   "matched_raw_window_head": {
     "source": "matched_raw_window_head",
     "variant": "raw_window_logistic_tuned",

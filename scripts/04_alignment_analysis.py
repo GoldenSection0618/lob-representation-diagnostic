@@ -572,7 +572,6 @@ def fit_latent_heads(
     selection_metric: str,
     seed: int,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, List[str]]:
-    del latent_artifact_dir
     metrics_rows: List[Dict[str, object]] = []
     pred_parts: List[pd.DataFrame] = []
     variants_used: List[str] = []
@@ -584,9 +583,17 @@ def fit_latent_heads(
             raise FileNotFoundError(f"Latent variant {variant} does not have train/val/test entries.")
         arrays = {}
         for split, entry in split_entries.items():
-            path = Path(entry["artifact_path"])
-            if not path.exists():
-                raise FileNotFoundError(f"Missing latent file for {variant}/{split}: {path}")
+            manifest_path = Path(entry["artifact_path"])
+            fallback_path = latent_artifact_dir / manifest_path.name
+            if manifest_path.exists():
+                path = manifest_path
+            elif fallback_path.exists():
+                path = fallback_path
+            else:
+                raise FileNotFoundError(
+                    f"Missing latent file for {variant}/{split}: "
+                    f"manifest path {manifest_path} and fallback path {fallback_path} do not exist."
+                )
             arrays[split] = np.load(path)
             if list(arrays[split].shape) != entry["latent_shape"]:
                 raise ValueError(f"Latent shape mismatch for {path}: {arrays[split].shape} vs {entry['latent_shape']}")
@@ -1114,6 +1121,7 @@ def main() -> int:
         "head_model": "logistic_regression",
         "head_c_grid": c_grid,
         "head_selection_metric": args.selection_metric,
+        "latent_path_resolution": "manifest absolute path first, fallback to --latent-artifact-dir / basename",
         "matched_raw_window_head": {
             "source": "matched_raw_window_head",
             "variant": "raw_window_logistic_tuned",
