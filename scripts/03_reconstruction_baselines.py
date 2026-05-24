@@ -605,7 +605,7 @@ def main() -> int:
                     lat_dir = artifact_dir / "latents"
                     lat_dir.mkdir(parents=True, exist_ok=True)
                     name = f"{model_name}_latent{latent_dim if latent_dim is not None else 'none'}_{split}.npy"
-                    lat_path = str((lat_dir / name).resolve())
+                    lat_path = str(lat_dir / name)
                     np.save(lat_path, lat)
 
             latent_manifest_entries.append(
@@ -628,7 +628,7 @@ def main() -> int:
             model_dir.mkdir(parents=True, exist_ok=True)
             path = model_dir / "train_mean_window_mean.npy"
             np.save(path, baseline_train_mean.mean_vector_)
-            art = str(path.resolve())
+            art = str(path)
 
         record_variant(
             model_name="train_mean_window",
@@ -665,7 +665,7 @@ def main() -> int:
                 path = model_dir / f"pca_latent{latent_dim}.pkl"
                 with open(path, "wb") as f:
                     pickle.dump(model.model, f)
-                art = str(path.resolve())
+                art = str(path)
 
             params = int(model.model.components_.size) if model.model is not None else 0
             record_variant(
@@ -701,7 +701,7 @@ def main() -> int:
                 model_dir.mkdir(parents=True, exist_ok=True)
                 path = model_dir / f"mlp_ae_latent{latent_dim}.pt"
                 torch.save(model.model.state_dict(), path)
-                art = str(path.resolve())
+                art = str(path)
 
             params = count_parameters(model.model) if model.model is not None else 0
             train_seconds = float(model.train_seconds_ or 0.0)
@@ -747,10 +747,10 @@ def main() -> int:
     (output_dir / "latent_manifest.json").write_text(json.dumps(to_jsonable(latent_manifest), indent=2), encoding="utf-8")
 
     run_config = {
-        "subset_dir": str(Path(args.subset_dir).resolve()),
-        "output_dir": str(output_dir.resolve()),
-        "figures_dir": str(figures_dir.resolve()),
-        "artifact_dir": str(artifact_dir.resolve()),
+        "subset_dir": args.subset_dir,
+        "output_dir": args.output_dir,
+        "figures_dir": args.figures_dir,
+        "artifact_dir": args.artifact_dir,
         "seed": args.seed,
         "selected_models": selected_models,
         "pca_latent_dims": pca_dims,

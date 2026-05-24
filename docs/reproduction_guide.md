@@ -14,8 +14,10 @@ Runtime convention:
 ## Step 3: Build Stride-4 Subset
 
 ```bash
+DATA_CSV=~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv
+
 mamba run -n lob python scripts/01_prepare_data.py \
-  --input-csv ~/datasets/LOBench-A-share-processed/sz000001-level10_processed.csv \
+  --input-csv "$DATA_CSV" \
   --symbol sz000001 \
   --output-dir data/processed/minimal_subset \
   --window-len 100 \

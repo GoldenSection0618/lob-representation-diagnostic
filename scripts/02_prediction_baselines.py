@@ -408,9 +408,9 @@ def main() -> int:
     best_by_log_loss = _select_best_by_log_loss(test_rows)
 
     run_config = {
-        "subset_dir": str(Path(args.subset_dir).resolve()),
-        "output_dir": str(output_dir.resolve()),
-        "figures_dir": str(figures_dir.resolve()),
+        "subset_dir": args.subset_dir,
+        "output_dir": args.output_dir,
+        "figures_dir": args.figures_dir,
         "seed": args.seed,
         "selected_models": selected_models,
         "model_hyperparameters": {
