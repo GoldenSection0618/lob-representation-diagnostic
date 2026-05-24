@@ -50,5 +50,5 @@
 - One symbol.
 - One horizon.
 - One subset.
-- No random/no-purge ablation.
+- As of Step 8, no random/no-purge split diagnostics are introduced; Step 10 later adds split-protocol decomposition.
 - No multi-symbol/multi-horizon robustness.

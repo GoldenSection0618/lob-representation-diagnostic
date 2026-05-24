@@ -1,7 +1,7 @@
 # Step 7 Reconstruction-Prediction Alignment Summary
 
 ## Scope
-- Step 7 uses the locked stride-4 boundary-purged chronological protocol.
+- Step 7 uses the stride-4 boundary-purged chronological baseline protocol, later named `chronological_purged` in Step 10.
 - Step 7 does not run random split or no-purge split ablations.
 - Reconstruction encoders are frozen; Step 7 trains only logistic heads on saved latent arrays and one matched flattened raw-window control.
 - Evidence is limited to one symbol (`sz000001`), one horizon (`trend5`), and one subset.

@@ -35,9 +35,9 @@ Expected current subset facts:
 - split sizes: train `5600`, val `1200`, test `1152`
 - boundary drops: `48`
 
-## Step 4: Protocol Lock
+## Step 4: Baseline Protocol Documentation
 
-Step 4 is a protocol-lock/documentation step and has no separate runnable command.
+Step 4 documents the conservative baseline protocol used by Steps 3-9. Step 10 later adds split-protocol diagnostics rather than treating this baseline as permanently locked.
 
 ## Step 5: Prediction Baselines
 

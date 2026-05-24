@@ -34,7 +34,7 @@ Files inspected:
 - `~/LOBench/config_template.json`
 - `~/LOBench/README.md`
 
-I use these files to understand the data and label conventions, not as copied project code. The distinction matters because upstream has multiple split and label paths, and the PoW intentionally locks one conservative evaluation protocol.
+I use these files to understand the data and label conventions, not as copied project code. The distinction matters because upstream has multiple split and label paths. The PoW uses one conservative baseline protocol for Steps 3-9 and later compares split protocols in Step 10.
 
 ## Data
 
@@ -57,3 +57,5 @@ The local directory contains multiple `*-level10_processed.csv` files, including
 ## Reproducibility Boundary
 
 The repo reproduces field mapping, label generation, window construction, boundary-purged chronological splitting, baseline execution, and metadata recording. It does not reproduce the external dataset itself. A local copy of the external dataset is required before running the scripts.
+
+Step 10 additionally reproduces split-protocol diagnostics on the same kept sample universe.
