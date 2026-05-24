@@ -278,6 +278,7 @@ The main limitations are:
 - One subset: the current evidence uses one stride-4 sample construction.
 - No multi-symbol robustness.
 - No multi-horizon robustness.
+- Regime and failure-case diagnostics are deferred to future work as Step 11.
 - No trading PnL, execution, slippage, cost, or portfolio evaluation.
 - Step 10 adds split-protocol diagnostics, but no multi-symbol or multi-horizon split robustness.
 - No cross-regime or multi-date stress test.
@@ -295,7 +296,8 @@ Future extensions should tighten the claim before broadening it:
 - Pre-register the full latent-head selection and evaluation protocol before running future test evaluations.
 - Repeat the protocol across additional A-share symbols.
 - Repeat the protocol across additional prediction horizons.
-- Add sensitivity checks across time segments or market regimes.
+- Step 11 should be a regime and failure-case diagnostic layer rather than part of the current primary evidence chain. It should slice prediction and reconstruction failures by spread, volatility, liquidity, top-of-book movement, imbalance-validity status, and other interpretable market-state variables, then test whether the reconstruction-prediction mismatch is concentrated in specific regimes.
+- Treat any Step 11 regime findings as explanatory evidence until repeated across additional symbols, horizons, and time periods.
 - Test top-of-book-focused reconstruction objectives.
 - Compare aggregate reconstruction loss against local book-state diagnostics such as spread, midprice, top-of-book error, and volume-sum/difference error.
 - Evaluate whether last-snapshot-like representations remain predictive after stricter controls or alternative labels.
