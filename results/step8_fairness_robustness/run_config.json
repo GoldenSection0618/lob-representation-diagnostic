@@ -1,0 +1,50 @@
+{
+  "step": "step8_fairness_robustness",
+  "sample_stride": 4,
+  "split_protocol": "boundary-purged chronological",
+  "subset_dir": "data/processed/minimal_subset",
+  "step5_dir": "results/step5_prediction_baselines",
+  "step6_dir": "results/step6_reconstruction_baselines",
+  "step7_dir": "results/step7_alignment",
+  "output_dir": "results/step8_fairness_robustness",
+  "figures_dir": "figures/step8_fairness_robustness",
+  "seed": 42,
+  "c_grid": [
+    0.01,
+    0.1,
+    1.0,
+    10.0
+  ],
+  "bootstrap_iterations": 1000,
+  "selection_metric": "macro_f1",
+  "primary_metric": "macro_f1",
+  "raw_logistic_control": {
+    "input": "flattened raw window",
+    "scaler": "train-only StandardScaler",
+    "class_weight": "balanced",
+    "max_iter": 2000,
+    "selected_by": "val_macro_f1_tie_mcc_log_loss"
+  },
+  "bootstrap_policy": {
+    "method": "paired test-set bootstrap",
+    "resampling": "resample same test indices for both models",
+    "delta_direction": "positive delta means model_a better"
+  },
+  "variant_sets": [
+    "all_latent_variants",
+    "exclude_last_snapshot_repeat",
+    "pca_only",
+    "mlp_ae_only",
+    "compressed_only_latent_dim_le_40",
+    "high_capacity_latent_dim_gt_40"
+  ],
+  "selection_basis_note": "best_frozen_latent_head is selected post hoc from Step 7 test macro-F1",
+  "notes": [
+    "no random split",
+    "no no-purge split",
+    "no reconstruction encoder retraining",
+    "no new reconstruction models",
+    "no multi-symbol or multi-horizon expansion",
+    "latent path reproducibility was fixed before Step 8 and is not part of this step"
+  ]
+}

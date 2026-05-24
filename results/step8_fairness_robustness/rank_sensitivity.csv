@@ -1,0 +1,7 @@
+variant_set,n_variants,included_variants,spearman_recon_mse_vs_macro_f1,spearman_top_of_book_mse_vs_macro_f1,spearman_last_step_mse_vs_macro_f1,spearman_lobench_weighted_mse_vs_macro_f1,best_reconstruction_variant,best_prediction_variant,same_best_variant,reconstruction_best_rank_pred_macro_f1,prediction_best_rank_recon_mse,interpretation
+all_latent_variants,9,"last_snapshot_repeat@40,pca@8,pca@16,pca@32,pca@64,pca@128,mlp_ae@16,mlp_ae@32,mlp_ae@64",-0.19999999999999998,-0.09999999999999999,-0.7333333333333334,-0.09999999999999999,pca@128,last_snapshot_repeat@40,False,2,9,rank_mismatch_persists
+exclude_last_snapshot_repeat,8,"pca@8,pca@16,pca@32,pca@64,pca@128,mlp_ae@16,mlp_ae@32,mlp_ae@64",-0.7142857142857144,-0.5714285714285715,-0.6190476190476191,-0.5714285714285715,pca@128,pca@128,True,2,1,rank_mismatch_weakens
+pca_only,5,"pca@8,pca@16,pca@32,pca@64,pca@128",-0.8999999999999998,-0.8999999999999998,-0.8999999999999998,-0.8999999999999998,pca@128,pca@128,True,2,1,rank_mismatch_weakens
+mlp_ae_only,3,"mlp_ae@16,mlp_ae@32,mlp_ae@64",1.0,0.5,1.0,0.5,mlp_ae@64,mlp_ae@16,False,7,6,rank_mismatch_persists
+compressed_only_latent_dim_le_40,6,"last_snapshot_repeat@40,pca@8,pca@16,pca@32,mlp_ae@16,mlp_ae@32",-0.08571428571428573,0.028571428571428574,-0.942857142857143,0.028571428571428574,pca@32,last_snapshot_repeat@40,False,3,9,rank_mismatch_persists
+high_capacity_latent_dim_gt_40,3,"pca@64,pca@128,mlp_ae@64",-1.0,-1.0,-1.0,-1.0,pca@128,pca@128,True,2,1,rank_mismatch_weakens
