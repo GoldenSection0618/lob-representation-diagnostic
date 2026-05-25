@@ -1,11 +1,13 @@
 # LOB Representation Diagnostic
 
-![Status](https://img.shields.io/badge/status-complete%20diagnostic-blue)
-![Scope](https://img.shields.io/badge/scope-one%20symbol%20%7C%20trend5-lightgrey)
-![Data](https://img.shields.io/badge/data-external-orange)
-![Claim](https://img.shields.io/badge/claim-conservative-green)
+![Project Type](https://img.shields.io/badge/project%20type-diagnostic%20PoW-4f46e5)
+![Task Scope](https://img.shields.io/badge/task%20scope-1%20symbol%20%7C%20sz000001%20%7C%20trend5-64748b)
+![Dataset](https://img.shields.io/badge/dataset-LOBench%20A--share-0891b2)
+![Primary Split](https://img.shields.io/badge/primary%20split-chronological%20%2B%20purged-16a34a)
 
 A leakage-aware diagnostic study of whether LOB reconstruction quality transfers to downstream mid-price trend prediction under chronological evaluation.
+
+This repository is an independent diagnostic PoW built around LOBench-style processed A-share data and uses [LOBench](https://github.com/financial-simulation-lab/LOBench) as an upstream reference; it is not a fork, full reproduction, or official extension of LOBench.
 
 > **Headline result:** naive window-level random splitting produces materially higher macro-F1 under full near-neighbor exposure, but the tuned raw-window logistic gain almost disappears under blocked random splitting with embargo.
 
