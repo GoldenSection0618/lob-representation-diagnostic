@@ -1,6 +1,13 @@
 # LOB Representation Diagnostic
 
+![Status](https://img.shields.io/badge/status-complete%20diagnostic-blue)
+![Scope](https://img.shields.io/badge/scope-one%20symbol%20%7C%20trend5-lightgrey)
+![Data](https://img.shields.io/badge/data-external-orange)
+![Claim](https://img.shields.io/badge/claim-conservative-green)
+
 A leakage-aware diagnostic study of whether LOB reconstruction quality transfers to downstream mid-price trend prediction under chronological evaluation.
+
+> **Headline result:** naive window-level random splitting produces materially higher macro-F1 under full near-neighbor exposure, but the tuned raw-window logistic gain almost disappears under blocked random splitting with embargo.
 
 The project emphasizes evaluation validity, reproducible experiment design, and conservative interpretation rather than model scale or trading profitability.
 
